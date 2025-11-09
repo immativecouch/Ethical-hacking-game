@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Generator - Ethical Hacker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0a0e27;
+            color: #00ff41;
+            padding: 2rem;
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #00ff41;
+            margin: 1rem;
+            background: #0a0e27;
+        }
+        button {
+            background: #00ff41;
+            color: #0a0e27;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0.5rem;
+            border-radius: 8px;
+        }
+        button:hover {
+            background: #00d4ff;
+        }
+        .instructions {
+            max-width: 800px;
+            margin: 2rem auto;
+            text-align: left;
+            background: rgba(0, 255, 65, 0.1);
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #00ff41;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Ethical Hacker - Icon Generator</h1>
+    <p>Generate PWA icons for the app</p>
+    
+    <canvas id="iconCanvas" width="512" height="512"></canvas>
+    
+    <div>
+        <button onclick="generateIcons()">Generate All Icons</button>
+        <button onclick="downloadIcon(72)">Download 72x72</button>
+        <button onclick="downloadIcon(96)">Download 96x96</button>
+        <button onclick="downloadIcon(128)">Download 128x128</button>
+        <button onclick="downloadIcon(144)">Download 144x144</button>
+        <button onclick="downloadIcon(152)">Download 152x152</button>
+        <button onclick="downloadIcon(192)">Download 192x192</button>
+        <button onclick="downloadIcon(384)">Download 384x384</button>
+        <button onclick="downloadIcon(512)">Download 512x512</button>
+    </div>
+    
+    <div class="instructions">
+        <h2>Instructions:</h2>
+        <ol>
+            <li>Click "Generate All Icons" to create all icon sizes</li>
+            <li>Icons will be downloaded automatically</li>
+            <li>Create a folder named "icons" in your project root</li>
+            <li>Move all downloaded icons to the "icons" folder</li>
+            <li>Your PWA will now have proper icons!</li>
+        </ol>
+        <p><strong>Note:</strong> Make sure to create the "icons" folder before generating icons.</p>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('iconCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function drawIcon(size) {
+            canvas.width = size;
+            canvas.height = size;
+            
+            // Background gradient
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#0a0e27');
+            gradient.addColorStop(1, '#1a2e47');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Border
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth = size * 0.02;
+            ctx.strokeRect(size * 0.1, size * 0.1, size * 0.8, size * 0.8);
+            
+            // Lock icon
+            ctx.fillStyle = '#00ff41';
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth = size * 0.03;
+            
+            // Lock body
+            const lockX = size * 0.5;
+            const lockY = size * 0.5;
+            const lockWidth = size * 0.25;
+            const lockHeight = size * 0.3;
+            
+            // Lock shackle
+            ctx.beginPath();
+            ctx.arc(lockX, lockY - lockHeight * 0.3, lockWidth * 0.6, Math.PI, 0, false);
+            ctx.lineWidth = size * 0.04;
+            ctx.stroke();
+            
+            // Lock body
+            ctx.fillRect(lockX - lockWidth / 2, lockY - lockHeight * 0.1, lockWidth, lockHeight);
+            
+            // Keyhole
+            ctx.fillStyle = '#0a0e27';
+            ctx.beginPath();
+            ctx.arc(lockX, lockY + lockHeight * 0.2, lockWidth * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillRect(lockX - lockWidth * 0.05, lockY + lockHeight * 0.2, lockWidth * 0.1, lockHeight * 0.3);
+            
+            // Glow effect
+            ctx.shadowColor = '#00ff41';
+            ctx.shadowBlur = size * 0.1;
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth = size * 0.02;
+            ctx.strokeRect(size * 0.1, size * 0.1, size * 0.8, size * 0.8);
+            ctx.shadowBlur = 0;
+        }
+        
+        function downloadIcon(size) {
+            drawIcon(size);
+            const link = document.createElement('a');
+            link.download = `icon-${size}x${size}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        function generateIcons() {
+            const sizes = [72, 96, 128, 144, 152, 192, 384, 512];
+            sizes.forEach((size, index) => {
+                setTimeout(() => {
+                    downloadIcon(size);
+                }, index * 300);
+            });
+        }
+        
+        // Draw initial preview
+        drawIcon(512);
+    </script>
+</body>
+</html>
+

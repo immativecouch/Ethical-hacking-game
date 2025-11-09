@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="description" content="Interactive cybersecurity training game with brute force attacks, file retrieval, and encryption challenges">
+    <meta name="keywords" content="cybersecurity, hacking game, ethical hacking, password cracking, encryption, security training, educational game, PWA, progressive web app">
+    <meta name="author" content="Ethical Hacker Game">
+    <meta name="theme-color" content="#00ff41">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Ethical Hacker">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-domain.com/">
+    <meta property="og:title" content="Ethical Hacker - Cybersecurity Training Game">
+    <meta property="og:description" content="Interactive cybersecurity training game with brute force attacks, file retrieval, and encryption challenges">
+    <meta property="og:image" content="https://your-domain.com/icons/icon-512x512.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-domain.com/">
+    <meta property="twitter:title" content="Ethical Hacker - Cybersecurity Training Game">
+    <meta property="twitter:description" content="Interactive cybersecurity training game">
+    <meta property="twitter:image" content="https://your-domain.com/icons/icon-512x512.png">
+    
+    <link rel="canonical" href="https://your-domain.com/">
+    
+    <title>Ethical Hacker - Cybersecurity Training Game</title>
+    
+    <!-- PWA Manifest - Only load on http/https, not file:// -->
+    <script>
+        if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = 'manifest.json';
+            document.head.appendChild(link);
+        }
+    </script>
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icons/icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="96x96" href="icons/icon-96x96.png">
+    <link rel="apple-touch-icon" sizes="128x128" href="icons/icon-128x128.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="384x384" href="icons/icon-384x384.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Loading screen will be shown by game.js -->
+    
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="screen">
+        <div class="loading-container">
+            <div class="loading-spinner"></div>
+            <h2 class="loading-text">INITIALIZING HACK...</h2>
+            <div class="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen" class="screen">
+        <div class="welcome-container">
+            <div class="welcome-content">
+                <h1 class="welcome-title">ETHICAL HACKER</h1>
+                <p class="welcome-subtitle">Cybersecurity Training Simulation</p>
+                <div class="welcome-message">
+                    <p>Learn ethical hacking through interactive challenges</p>
+                    <p>Practice password cracking, file retrieval, and decryption</p>
+                </div>
+                <div class="welcome-controls">
+                    <p class="controls-hint">Press <kbd>ENTER</kbd> / <kbd>A</kbd> (Gamepad) / Click to continue</p>
+                </div>
+                <button class="btn btn-primary btn-welcome" id="welcomeContinueBtn">CONTINUE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skip to main content link (accessibility) -->
+    <a href="#mainMenu" class="skip-link" aria-label="Skip to main content">Skip to main content</a>
+
+    <!-- Main Menu Screen -->
+    <div id="mainMenu" class="screen" role="main" aria-label="Main menu">
+        <div class="menu-container">
+            <h1 class="game-title">ETHICAL HACKER</h1>
+            <p class="game-subtitle">Cybersecurity Training Simulation</p>
+            <div class="mobile-notice">
+                <p>📱 <strong>Note:</strong> Optimized for all devices. Touch controls available for mobile users.</p>
+            </div>
+            <div class="menu-buttons menu-compact">
+                <div class="menu-primary">
+                    <button class="btn btn-primary" id="startBtn" aria-label="Start new game">START GAME</button>
+                    <button class="btn btn-secondary" id="campaignBtn" aria-label="Start campaign mode">CAMPAIGN</button>
+                </div>
+                <div class="menu-secondary">
+                    <button class="btn btn-secondary btn-small" id="statisticsBtn" aria-label="View statistics">📊 STATS</button>
+                    <button class="btn btn-secondary btn-small" id="achievementsBtn" aria-label="View achievements">🏆 ACHIEVEMENTS</button>
+                    <button class="btn btn-secondary btn-small" id="dailyChallengesBtn" aria-label="View daily challenges">📅 CHALLENGES</button>
+                    <button class="btn btn-secondary btn-small" id="leaderboardBtn" aria-label="View leaderboard">📈 LEADERBOARD</button>
+                </div>
+                <div class="menu-tertiary">
+                    <button class="btn btn-secondary btn-small" id="tutorialBtn">📖 TUTORIAL</button>
+                    <button class="btn btn-secondary btn-small" id="settingsBtn">⚙️ SETTINGS</button>
+                    <button class="btn btn-secondary btn-small" id="aboutBtn">ℹ️ ABOUT</button>
+                    <button class="btn btn-secondary btn-small" id="multiplayerBtn">🎮 MULTIPLAYER</button>
+                </div>
+                <div class="menu-extra">
+                    <button class="btn btn-secondary btn-creator btn-small" id="creatorModeBtn">🔧 CREATOR</button>
+                    <button class="btn btn-install btn-small" id="installPWA" style="display: none; background: rgba(0, 212, 255, 0.2); border-color: var(--secondary-color); color: var(--secondary-color);">
+                        📱 INSTALL
+                    </button>
+                </div>
+            </div>
+            <div class="gamepad-indicator" id="gamepadIndicator">
+                <span>🎮 Gamepad Connected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Selection Screen -->
+    <div id="deviceSelection" class="screen">
+        <div class="container">
+            <h2>SELECT TARGET DEVICE</h2>
+            <div class="device-grid">
+                <div class="device-card" data-device="laptop">
+                    <div class="device-icon">💻</div>
+                    <h3>LAPTOP</h3>
+                    <p>Standard laptop security</p>
+                </div>
+                <div class="device-card" data-device="mobile">
+                    <div class="device-icon">📱</div>
+                    <h3>MOBILE</h3>
+                    <p>Smartphone device</p>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backToMenu">BACK</button>
+        </div>
+    </div>
+    
+    <!-- Creator Mode Access -->
+    <div id="creatorAccess" class="screen">
+        <div class="container">
+            <div class="creator-access-wrapper">
+                <div class="creator-access-content">
+                    <div class="creator-header-section">
+                        <div class="creator-icon-wrapper">
+                            <div class="creator-icon">🔐</div>
+                            <div class="creator-icon-glow"></div>
+                        </div>
+                        <h2 class="creator-title">CREATOR MODE</h2>
+                        <p class="creator-subtitle">Restricted Access Area</p>
+                        <div class="creator-divider"></div>
+                    </div>
+                    
+                    <div class="creator-form-section">
+                        <label class="creator-label">Enter 6-Digit Passcode</label>
+                        <div class="pin-input-wrapper">
+                            <div class="pin-input-container">
+                                <input type="password" id="creatorPin" placeholder="••••••" maxlength="6" pattern="[0-9]*" inputmode="numeric" autofocus>
+                                <div class="pin-input-glow"></div>
+                            </div>
+                            <div class="pin-dots" id="pinDots">
+                                <span class="pin-dot"></span>
+                                <span class="pin-dot"></span>
+                                <span class="pin-dot"></span>
+                                <span class="pin-dot"></span>
+                                <span class="pin-dot"></span>
+                                <span class="pin-dot"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="creator-buttons">
+                        <button class="btn btn-creator-access" id="submitCreatorPin">
+                            <span class="btn-icon">✓</span>
+                            <span>ACCESS</span>
+                        </button>
+                        <button class="btn btn-creator-cancel" id="cancelCreatorAccess">
+                            <span class="btn-icon">✕</span>
+                            <span>CANCEL</span>
+                        </button>
+                    </div>
+                    
+                    <div class="creator-footer">
+                        <p class="creator-warning">⚠️ Authorized Personnel Only</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Creator Mode Dashboard -->
+    <div id="creatorMode" class="screen">
+        <div class="container" style="display: flex; flex-direction: column; height: 100%; max-height: 100vh;">
+            <div class="creator-dashboard" style="display: flex; flex-direction: column; height: 100%; flex: 1; overflow: hidden;">
+                <div class="creator-header" style="flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="margin: 0;">🔧 CREATOR MODE</h2>
+                    <button class="btn btn-secondary" id="exitCreatorMode">EXIT</button>
+                </div>
+                
+                <div class="creator-tabs" style="flex-shrink: 0; display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; position: relative; z-index: 100;">
+                    <button class="creator-tab active" data-tab="passcodes" type="button">📊 Passcodes</button>
+                    <button class="creator-tab" data-tab="statistics" type="button">📈 Statistics</button>
+                    <button class="creator-tab" data-tab="leaderboard" type="button">🏆 Leaderboard</button>
+                    <button class="creator-tab" data-tab="achievements" type="button" id="creatorAchievementsTab">🎖️ Achievements</button>
+                    <button class="creator-tab" data-tab="data" type="button">💾 Data Management</button>
+                    <button class="creator-tab" data-tab="debug" type="button">🔍 Debug Tools</button>
+                </div>
+                
+                <div class="creator-content" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                    <!-- Passcodes Tab -->
+                    <div class="creator-tab-content active" id="tab-passcodes" style="display: flex; flex-direction: column;">
+                        <div class="creator-section creator-scrollable" style="flex: 1;">
+                            <h3>📊 Generated Passcodes</h3>
+                            <div class="passcode-list" id="passcodeList">
+                                <p class="no-passcodes">No passcodes generated yet. Start a game to see them here.</p>
+                            </div>
+                        </div>
+                        <div class="creator-stats" style="flex-shrink: 0; margin-top: 1rem;">
+                            <div class="stat-item">
+                                <span class="stat-label">Total Games:</span>
+                                <span class="stat-value" id="totalGames">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Easy Passcodes:</span>
+                                <span class="stat-value" id="easyCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Medium Passcodes:</span>
+                                <span class="stat-value" id="mediumCount">0</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Hard Passcodes:</span>
+                                <span class="stat-value" id="hardCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Statistics Tab -->
+                    <div class="creator-tab-content" id="tab-statistics" style="display: none; flex-direction: column;">
+                        <div class="creator-section creator-scrollable" style="flex: 1;">
+                            <h3>📈 Complete Statistics Overview</h3>
+                            <div id="creatorStatsDisplay"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Leaderboard Tab -->
+                    <div class="creator-tab-content" id="tab-leaderboard" style="display: none; flex-direction: column;">
+                        <div class="creator-section creator-scrollable" style="flex: 1;">
+                            <h3>🏆 Full Leaderboard</h3>
+                            <div id="creatorLeaderboardDisplay"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Achievements Tab -->
+                    <div class="creator-tab-content" id="tab-achievements" style="display: none; flex-direction: column;">
+                        <div class="creator-section creator-scrollable" style="flex: 1;">
+                            <h3>🎖️ Achievement Status</h3>
+                            <div id="creatorAchievementsDisplay"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Management Tab -->
+                    <div class="creator-tab-content" id="tab-data" style="display: none; flex-direction: column;">
+                        <div class="creator-section creator-scrollable" style="flex: 1;">
+                            <h3>💾 Data Management</h3>
+                            
+                            <div class="data-actions">
+                                <h4>📤 Export Data</h4>
+                                <button class="btn btn-primary" id="exportDataBtn">📥 Export All Data</button>
+                                <p class="help-text">Download a backup of all game data as JSON</p>
+                                
+                                <h4>📥 Import Data</h4>
+                                <input type="file" id="importDataInput" accept=".json" style="display: none;">
+                                <button class="btn btn-primary" id="importDataBtn">📤 Import Data</button>
+                                <p class="help-text">Restore game data from a backup file</p>
+                                
+                                <h4 style="color: var(--danger-color); margin-top: 2rem;">⚠️ Reset Options</h4>
+                                
+                                <div class="reset-buttons">
+                                    <button class="btn btn-secondary" id="resetStatsBtn">Reset Statistics</button>
+                                    <button class="btn btn-secondary" id="resetAchievementsBtn">Reset Achievements</button>
+                                    <button class="btn btn-secondary" id="resetCampaignBtn">Reset Campaign</button>
+                                    <button class="btn btn-secondary" id="resetLeaderboardBtn">Reset Leaderboard</button>
+                                    <button class="btn btn-secondary" id="resetChallengesBtn">Reset Challenges</button>
+                                </div>
+                                
+                                <div class="wipe-all-section" style="margin-top: 2rem; padding-top: 2rem; border-top: 3px solid var(--danger-color);">
+                                    <h4 style="color: var(--danger-color);">🗑️ WIPE ALL DATA</h4>
+                                    <button class="btn btn-danger" id="wipeAllDataBtn" style="width: 100%; max-width: 400px;">
+                                        🗑️ WIPE ALL GAME DATA
+                                    </button>
+                                    <p class="help-text" style="color: var(--danger-color);">
+                                        This will permanently delete ALL game data. This action cannot be undone!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Debug Tools Tab -->
+                    <div class="creator-tab-content" id="tab-debug" style="display: none; flex-direction: column;">
+                        <div class="creator-section creator-scrollable" style="flex: 1;">
+                            <h3>🔍 Debug Tools</h3>
+                            
+                            <div class="debug-actions">
+                                <h4>Quick Test Mode</h4>
+                                <div class="test-buttons">
+                                    <button class="btn btn-secondary" id="testEasyBtn">Test Easy Mode</button>
+                                    <button class="btn btn-secondary" id="testMediumBtn">Test Medium Mode</button>
+                                    <button class="btn btn-secondary" id="testHardBtn">Test Hard Mode</button>
+                                </div>
+                                
+                                <h4>System Info</h4>
+                                <div class="system-info" id="systemInfo"></div>
+                                
+                                <h4>Storage Info</h4>
+                                <div class="storage-info" id="storageInfo"></div>
+                                
+                                <h4>Console</h4>
+                                <button class="btn btn-secondary" id="toggleDebugBtn">Toggle Debug Mode</button>
+                                <p class="help-text">Current Debug Mode: <span id="debugStatus">OFF</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Difficulty Selection Screen -->
+    <div id="difficultySelection" class="screen">
+        <div class="container">
+            <h2>SELECT DIFFICULTY</h2>
+            <div class="difficulty-grid">
+                <div class="difficulty-card" data-difficulty="easy">
+                    <h3>EASY</h3>
+                    <p>4-digit PIN</p>
+                    <p class="time-limit">⏱️ 60 seconds</p>
+                </div>
+                <div class="difficulty-card" data-difficulty="medium">
+                    <h3>MEDIUM</h3>
+                    <p>6-character password</p>
+                    <p class="time-limit">⏱️ 45 seconds</p>
+                    <p class="encrypted">🔒 Encrypted files</p>
+                </div>
+                <div class="difficulty-card" data-difficulty="hard">
+                    <h3>HARD</h3>
+                    <p>8-character password</p>
+                    <p class="time-limit">⏱️ 30 seconds</p>
+                    <p class="encrypted">🔒 Encrypted files</p>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backToDevice">BACK</button>
+        </div>
+    </div>
+
+    <!-- Brute Force Game Screen -->
+    <div id="bruteForceGame" class="screen">
+        <div class="game-container">
+            <div class="game-header">
+                <div class="game-info">
+                    <button class="btn btn-small btn-back-game" id="backFromGame" title="Back to Menu (ESC)">← BACK</button>
+                    <span class="device-name" id="currentDevice">💻 LAPTOP</span>
+                    <span class="difficulty-badge" id="currentDifficulty">EASY</span>
+                </div>
+                <div class="timer-score">
+                    <button class="btn btn-small btn-pause" id="pauseBtn" title="Pause (P)">⏸ PAUSE</button>
+                    <div class="timer">
+                        <span>⏱️</span>
+                        <span id="timer">60</span>
+                    </div>
+                    <div class="score">
+                        <span>Score: </span>
+                        <span id="score">0</span>
+                    </div>
+                    <button class="btn-sound-toggle" id="soundToggle" title="Toggle Sound">
+                        <span id="soundIcon">🔊</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="game-area">
+                <div class="password-display">
+                    <h3>CRACK THE PASSWORD</h3>
+                    <div class="password-hint" id="passwordHint"></div>
+                    <div class="hint-tip">
+                        💡 <strong>Tip:</strong> Look for characters with a blue glow and ✨ symbol - those are password characters!
+                    </div>
+                    <div class="password-slots" id="passwordSlots"></div>
+                    <div class="attempts">
+                        <span>Attempts: </span>
+                        <span id="attempts">0</span>
+                        <span> / </span>
+                        <span id="maxAttempts">10</span>
+                    </div>
+                </div>
+                
+                <div class="crossword-grid" id="crosswordGrid"></div>
+                
+                <div class="controls-hint">
+                    <div class="controls">
+                        <p class="desktop-controls">Use <kbd>Arrow Keys</kbd> to move</p>
+                        <p class="desktop-controls">Press <kbd>ENTER</kbd> to select character</p>
+                        <p class="desktop-controls">Gamepad: D-Pad or Left Stick + A/X button</p>
+                        <p class="mobile-controls">📱 <strong>Mobile:</strong> Tap cells to select characters</p>
+                        <p class="mobile-controls">Swipe on grid to move selection</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating Hint Notification -->
+        <div id="hintNotification" class="hint-notification">
+            <div class="hint-content">
+                <div class="hint-icon">💡</div>
+                <p class="hint-message">Need help finding the password?</p>
+                <div class="hint-buttons">
+                    <button class="btn btn-primary btn-small" id="requestHintBtn">GET HINT</button>
+                    <button class="btn btn-secondary btn-small" id="dismissHintBtn">NO THANKS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Retrieval Screen -->
+    <div id="fileRetrieval" class="screen">
+        <div class="container">
+            <h2>FILE RETRIEVAL</h2>
+            <div class="sensor-game">
+                <div class="sensor-display">
+                    <div class="sensor-grid-overlay"></div>
+                    <div id="targetZone" class="target-zone">
+                        <div class="target-pulse"></div>
+                        <div class="target-center"></div>
+                    </div>
+                    <div id="sensorPointer" class="sensor-pointer">
+                        <div class="sensor-glow"></div>
+                        <div class="sensor-core"></div>
+                    </div>
+                    <div class="sensor-distance-indicator" id="distanceIndicator">
+                        <span id="distanceText">Distance: --</span>
+                    </div>
+                </div>
+                <div class="sensor-info">
+                    <div class="sensor-controls">
+                        <p>Use <kbd>Arrow Keys</kbd> or <kbd>WASD</kbd> to move the sensor pointer</p>
+                        <p>Align with the blue target zone and hold <kbd>SPACE</kbd> to retrieve files</p>
+                    </div>
+                    <div class="sensor-progress-container">
+                        <div class="progress-label">Retrieval Progress</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text"><span id="sensorProgress">0</span>%</div>
+                    </div>
+                    <div class="sensor-status" id="sensorStatus">
+                        <span class="status-icon">📍</span>
+                        <span class="status-text">Move sensor to target zone</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pauseMenu" class="screen pause-overlay">
+        <div class="pause-container">
+            <h2>GAME PAUSED</h2>
+            <div class="pause-menu-buttons">
+                <button class="btn btn-primary" id="resumeBtn">▶ RESUME</button>
+                <button class="btn btn-secondary" id="restartBtn">🔄 RESTART</button>
+                <button class="btn btn-secondary" id="quitToMenuBtn">🏠 QUIT TO MENU</button>
+            </div>
+            <p class="pause-hint">Press <kbd>P</kbd> or <kbd>ESC</kbd> to resume</p>
+        </div>
+    </div>
+
+    <!-- Decryption Screen -->
+    <div id="decryptionScreen" class="screen">
+        <div class="container scrollable">
+            <h2>DECRYPT FILES</h2>
+            <div class="decryption-game">
+                <div class="decryption-section">
+                    <h3>🔒 Encrypted Files</h3>
+                    <div class="encrypted-files" id="encryptedFiles"></div>
+                </div>
+                <div class="decryption-section">
+                    <h3>🔑 Decryption Key Pattern</h3>
+                    <div class="key-pattern" id="keyPattern"></div>
+                    <div class="decryption-input">
+                        <input type="text" id="decryptionKey" placeholder="Enter decryption key" maxlength="16" autofocus>
+                        <button class="btn btn-primary" id="decryptBtn">DECRYPT</button>
+                    </div>
+                    <div class="decryption-error" id="decryptionError"></div>
+                    <div class="hint-box">
+                        <p>💡 Hint: Analyze the encrypted data pattern to find the key</p>
+                        <p class="hint-example">Example patterns: ABCD1234, 1234ABCD, A1B2C3D4</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Up Screen -->
+    <div id="timeUpScreen" class="screen">
+        <div class="container">
+            <div class="time-up-content">
+                <h2>⏰ TIME'S UP</h2>
+                <p class="time-up-message">Mission Failed - Time Limit Exceeded</p>
+                <div class="time-up-stats">
+                    <p>Attempts Made: <span id="timeUpAttempts">0</span></p>
+                    <p>Score: <span id="timeUpScore">0</span></p>
+                </div>
+                <div class="time-up-buttons">
+                    <button class="btn btn-primary" id="retryAfterTimeUp">TRY AGAIN</button>
+                    <button class="btn btn-secondary" id="mainMenuFromTimeUp">MAIN MENU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alternative Breach Screen -->
+    <div id="alternativeBreachScreen" class="screen">
+        <div class="container">
+            <h2>🔓 ALTERNATIVE BREACH METHOD</h2>
+            <div class="breach-content">
+                <p class="breach-message">Device locked due to multiple failed attempts!</p>
+                <p class="breach-submessage">As an ethical hacker, you'll try a different approach...</p>
+                <p class="breach-instructions" id="breachInstructions">Watch the sequence carefully!</p>
+                <div class="breach-sequence" id="breachSequence"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Screen -->
+    <div id="successScreen" class="screen">
+        <div class="container">
+            <div class="success-content">
+                <div class="success-celebration">
+                    <div class="celebration-icon">🎉</div>
+                    <div class="celebration-particles"></div>
+                </div>
+                <h2 class="success-title">MISSION ACCOMPLISHED</h2>
+                <p class="success-message">You successfully hacked the device and retrieved all files!</p>
+                <div class="success-stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Final Score</div>
+                        <div class="stat-value" id="finalScore">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Time Bonus</div>
+                        <div class="stat-value" id="timeRemaining">0s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Files Retrieved</div>
+                        <div class="stat-value" id="filesRetrieved">0</div>
+                    </div>
+                </div>
+                <div class="success-buttons">
+                    <button class="btn btn-primary" id="saveScoreBtn">SAVE SCORE</button>
+                    <button class="btn btn-secondary" id="playAgainBtn">PLAY AGAIN</button>
+                    <button class="btn btn-secondary" id="mainMenuBtn">MAIN MENU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Name Input Modal -->
+    <div id="nameInputModal" class="screen">
+        <div class="modal-overlay">
+            <div class="modal-content">
+                <h2>SAVE YOUR SCORE</h2>
+                <p class="modal-message">Enter your name for the leaderboard:</p>
+                <div class="modal-input-group">
+                    <input type="text" id="playerNameInput" placeholder="Your Name" maxlength="20" autofocus>
+                    <div class="modal-buttons">
+                        <button class="btn btn-primary" id="saveNameBtn">SAVE</button>
+                        <button class="btn btn-secondary" id="cancelNameBtn">CANCEL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modals -->
+    <div id="confirmModal" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal">
+            <div class="custom-modal-header">
+                <h3 id="confirmModalTitle">CONFIRMATION</h3>
+            </div>
+            <div class="custom-modal-body">
+                <p id="confirmModalMessage">Are you sure?</p>
+            </div>
+            <div class="custom-modal-buttons">
+                <button class="btn btn-primary" id="confirmModalOk">OK</button>
+                <button class="btn btn-secondary" id="confirmModalCancel">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="leaderboardScreen" class="screen">
+        <div class="container">
+            <h2>LEADERBOARD</h2>
+            <div class="screen-scrollable-content">
+            <div class="leaderboard-content">
+                <div class="leaderboard-controls" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center;">
+                    <input type="text" id="leaderboardSearch" placeholder="🔍 Search by name..." style="flex: 1; min-width: 200px; padding: 0.75rem; background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 0.9rem;">
+                    <select id="leaderboardDifficultyFilter" style="padding: 0.75rem; background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 0.9rem; cursor: pointer;">
+                        <option value="all">All Difficulties</option>
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                    <select id="leaderboardDateFilter" style="padding: 0.75rem; background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 0.9rem; cursor: pointer;">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                <div class="leaderboard-filters" style="display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                    <button class="filter-btn active" data-filter="all">ALL</button>
+                    <button class="filter-btn" data-filter="easy">EASY</button>
+                    <button class="filter-btn" data-filter="medium">MEDIUM</button>
+                    <button class="filter-btn" data-filter="hard">HARD</button>
+                </div>
+                <div class="leaderboard-list" id="leaderboardList"></div>
+            </div>
+            </div>
+            <button class="btn btn-back" id="backFromLeaderboard">BACK</button>
+        </div>
+    </div>
+
+    <!-- Tutorial Screen -->
+    <div id="tutorialScreen" class="screen">
+        <div class="container">
+            <h2>TUTORIAL</h2>
+            <div class="tutorial-content">
+                <div class="tutorial-section">
+                    <h3>🎮 How to Play</h3>
+                    <ol>
+                        <li>Select a target device (Laptop, Mobile, or PC)</li>
+                        <li>Choose difficulty level (Easy, Medium, or Hard)</li>
+                        <li>Use arrow keys or WASD to move the selection box</li>
+                        <li>Find the correct password by selecting characters</li>
+                        <li>Complete the file retrieval sensor operation</li>
+                        <li>Decrypt files if playing Medium or Hard difficulty</li>
+                    </ol>
+                </div>
+                <div class="tutorial-section">
+                    <h3>🔒 Cybersecurity Education</h3>
+                    <p>This game demonstrates common attack vectors:</p>
+                    <ul>
+                        <li><strong>Brute Force Attacks:</strong> Attackers try multiple password combinations</li>
+                        <li><strong>Social Engineering:</strong> Gathering information to guess passwords</li>
+                        <li><strong>Data Interception:</strong> Retrieving files from compromised devices</li>
+                        <li><strong>Encryption Bypass:</strong> Attempting to decrypt protected data</li>
+                    </ul>
+                </div>
+                <div class="tutorial-section">
+                    <h3>🛡️ How to Protect Yourself</h3>
+                    <ul>
+                        <li>Use strong, unique passwords (12+ characters, mixed case, numbers, symbols)</li>
+                        <li>Enable two-factor authentication (2FA)</li>
+                        <li>Keep software and systems updated</li>
+                        <li>Use encryption for sensitive files</li>
+                        <li>Be cautious of phishing attempts</li>
+                        <li>Monitor your accounts for suspicious activity</li>
+                        <li>Use a password manager</li>
+                        <li>Never share passwords or personal information</li>
+                    </ul>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backFromTutorial">BACK</button>
+        </div>
+    </div>
+
+    <!-- About Screen -->
+    <div id="aboutScreen" class="screen">
+        <div class="container">
+            <h2>ABOUT</h2>
+            <div class="about-content">
+                <p><strong>Ethical Hacker</strong> is an educational cybersecurity training game designed to demonstrate common attack vectors and security vulnerabilities in a safe, controlled environment.</p>
+                <h3>Project Purpose</h3>
+                <p>This project aims to educate users about:</p>
+                <ul>
+                    <li>How brute force attacks work</li>
+                    <li>Common security vulnerabilities</li>
+                    <li>Best practices for protecting digital assets</li>
+                    <li>The importance of strong passwords and encryption</li>
+                </ul>
+                <h3>Educational Value</h3>
+                <p>By experiencing these attack scenarios in a game format, users can better understand the importance of cybersecurity and learn how to protect themselves from real-world threats.</p>
+                <p class="disclaimer"><strong>⚠️ Disclaimer:</strong> This game is for educational purposes only. Unauthorized access to computer systems is illegal and unethical.</p>
+            </div>
+            <button class="btn btn-back" id="backFromAbout">BACK</button>
+        </div>
+    </div>
+
+    <!-- Statistics Screen -->
+    <div id="statisticsScreen" class="screen">
+        <div class="container">
+            <h2>STATISTICS</h2>
+            <div class="screen-scrollable-content">
+            <div class="stats-dashboard">
+                <div class="stat-card">
+                    <h3>Games Played</h3>
+                    <p id="totalGamesPlayed" class="stat-value">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Games Won</h3>
+                    <p id="gamesWon" class="stat-value">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Win Rate</h3>
+                    <p id="winRate" class="stat-value">0%</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Score</h3>
+                    <p id="totalScore" class="stat-value">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Best Score</h3>
+                    <p id="bestScore" class="stat-value">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Best Time</h3>
+                    <p id="bestTime" class="stat-value">--</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Score</h3>
+                    <p id="averageScore" class="stat-value">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Play Time</h3>
+                    <p id="totalPlayTime" class="stat-value">0s</p>
+                </div>
+            </div>
+            <div class="stats-details">
+                <h3>Difficulty Breakdown</h3>
+                <div class="difficulty-stats" id="difficultyStats"></div>
+                <h3>Device Breakdown</h3>
+                <div class="device-stats" id="deviceStats"></div>
+            </div>
+            </div>
+            <button class="btn btn-back" id="backFromStats">BACK</button>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settingsScreen" class="screen">
+        <div class="container">
+            <h2>SETTINGS</h2>
+            <div class="settings-content settings-scrollable">
+                <div class="settings-section">
+                    <h3>Audio</h3>
+                    <div class="setting-item">
+                        <label for="soundEnabled">Sound Effects</label>
+                        <input type="checkbox" id="soundEnabled" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label for="soundVolume">Sound Volume: <span id="soundVolumeValue">100</span>%</label>
+                        <input type="range" id="soundVolume" min="0" max="100" value="100">
+                    </div>
+                    <div class="setting-item">
+                        <label for="musicEnabled">Background Music</label>
+                        <input type="checkbox" id="musicEnabled" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label for="musicVolume">Music Volume: <span id="musicVolumeValue">50</span>%</label>
+                        <input type="range" id="musicVolume" min="0" max="100" value="50">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Gameplay</h3>
+                    <div class="setting-item">
+                        <label for="defaultDifficulty">Default Difficulty</label>
+                        <select id="defaultDifficulty">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="autoSave">Auto-Save Game</label>
+                        <input type="checkbox" id="autoSave" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label for="showHints">Show Hints</label>
+                        <input type="checkbox" id="showHints" checked>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Appearance</h3>
+                    <div class="setting-item">
+                        <label for="theme">Theme</label>
+                        <select id="theme">
+                            <option value="cyberpunk">Cyberpunk</option>
+                            <option value="matrix">Matrix</option>
+                            <option value="neon">Neon</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="animationsEnabled">Animations</label>
+                        <input type="checkbox" id="animationsEnabled" checked>
+                    </div>
+                    <div class="setting-item">
+                        <label for="highContrast">High Contrast</label>
+                        <input type="checkbox" id="highContrast">
+                    </div>
+                    <div class="setting-item">
+                        <label for="fontSize">Font Size</label>
+                        <select id="fontSize">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Controls</h3>
+                    <div class="setting-item">
+                        <label for="uiScale">UI Scale</label>
+                        <input type="range" id="uiScale" min="80" max="120" value="100">
+                        <span id="uiScaleValue">100%</span>
+                    </div>
+                    <div class="setting-item">
+                        <button class="btn btn-secondary" id="showKeyboardShortcuts">View Keyboard Shortcuts</button>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Accessibility</h3>
+                    <div class="setting-item">
+                        <label for="screenReader">Screen Reader Support</label>
+                        <input type="checkbox" id="screenReader">
+                    </div>
+                    <div class="setting-item">
+                        <label for="colorblindMode">Colorblind Mode</label>
+                        <input type="checkbox" id="colorblindMode">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <button class="btn btn-danger" id="resetSettings">Reset to Defaults</button>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backFromSettings">BACK</button>
+        </div>
+    </div>
+
+    <!-- Achievements Screen -->
+    <div id="achievementsScreen" class="screen">
+        <div class="container">
+            <h2>ACHIEVEMENTS</h2>
+            <div class="screen-scrollable-content">
+            <div class="achievements-header">
+                <p>Unlocked: <span id="achievementsUnlocked">0</span> / <span id="achievementsTotal">0</span></p>
+                <p>Total Points: <span id="achievementsPoints">0</span></p>
+            </div>
+            <div class="achievements-grid" id="achievementsGrid"></div>
+            </div>
+            <button class="btn btn-back" id="backFromAchievements">BACK</button>
+        </div>
+    </div>
+
+    <!-- Daily Challenges Screen -->
+    <div id="dailyChallengesScreen" class="screen">
+        <div class="container">
+            <h2>DAILY CHALLENGES</h2>
+            <div class="challenges-info">
+                <p>New challenges refresh every day at midnight!</p>
+                <p>Time remaining: <span id="challengeTimeRemaining">--</span></p>
+            </div>
+            <div class="challenges-list challenges-scrollable" id="challengesList"></div>
+            <button class="btn btn-back" id="backFromChallenges">BACK</button>
+        </div>
+    </div>
+
+    <!-- Interactive Tutorial Screen -->
+    <div id="tutorialScreen" class="screen">
+        <div class="container">
+            <h2>TUTORIAL</h2>
+            <div class="tutorial-content">
+                <div class="tutorial-step active" id="tutorialStep1">
+                    <h3>Welcome to BruteForce!</h3>
+                    <p>This tutorial will guide you through the game mechanics.</p>
+                    <div class="tutorial-demo">
+                        <p>Use arrow keys or WASD to navigate</p>
+                    </div>
+                </div>
+                <div class="tutorial-step" id="tutorialStep2">
+                    <h3>Password Grid</h3>
+                    <p>Find the correct password by selecting cells in the grid.</p>
+                    <p>Each cell contains a character. Select cells to build your password.</p>
+                </div>
+                <div class="tutorial-step" id="tutorialStep3">
+                    <h3>File Retrieval</h3>
+                    <p>After finding the password, you'll need to retrieve files.</p>
+                    <p>Use arrow keys to move the sensor and SPACE to retrieve.</p>
+                </div>
+                <div class="tutorial-step" id="tutorialStep4">
+                    <h3>Decryption</h3>
+                    <p>Decrypt the files by matching the sequence.</p>
+                    <p>Watch the pattern and repeat it correctly.</p>
+                </div>
+                <div class="tutorial-navigation">
+                    <button class="btn btn-secondary" id="tutorialPrev">Previous</button>
+                    <span id="tutorialProgress">1 / 4</span>
+                    <button class="btn btn-primary" id="tutorialNext">Next</button>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backFromTutorial">BACK</button>
+        </div>
+    </div>
+
+    <!-- Campaign Mode Screen -->
+    <div id="campaignScreen" class="screen">
+        <div class="container" style="display: flex; flex-direction: column; height: 100%; max-height: 100vh;">
+            <h2 style="flex-shrink: 0;">CAMPAIGN MODE</h2>
+            <div class="screen-scrollable-content" style="flex: 1;">
+            <div class="campaign-content">
+                <div class="campaign-story">
+                    <h3>Mission Briefing</h3>
+                    <p>You are an elite hacker working for a secret organization. Your mission is to breach various security systems and retrieve classified information.</p>
+                </div>
+                <div class="campaign-levels" id="campaignLevels"></div>
+            </div>
+            </div>
+            <button class="btn btn-back" id="backFromCampaign" style="flex-shrink: 0; margin-top: auto;">BACK</button>
+        </div>
+    </div>
+
+    <!-- Multiplayer Screen -->
+    <div id="multiplayerScreen" class="screen">
+        <div class="container">
+            <h2>MULTIPLAYER</h2>
+            <div class="multiplayer-content">
+                <div class="multiplayer-info">
+                    <p>🎮 Multiplayer mode is coming soon!</p>
+                    <p>Compete with friends in real-time hacking challenges.</p>
+                    <p>Features will include:</p>
+                    <ul>
+                        <li>Real-time competitive matches</li>
+                        <li>Private rooms with friends</li>
+                        <li>Leaderboards and rankings</li>
+                        <li>Team-based challenges</li>
+                    </ul>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backFromMultiplayer">BACK</button>
+        </div>
+    </div>
+
+    <!-- Tournament Screen -->
+    <div id="tournamentScreen" class="screen">
+        <div class="container">
+            <h2>TOURNAMENTS</h2>
+            <div class="tournament-content">
+                <div class="tournament-list" id="tournamentList">
+                    <p>Tournament system coming soon!</p>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backFromTournament">BACK</button>
+        </div>
+    </div>
+
+    <!-- Community Screen -->
+    <div id="communityScreen" class="screen">
+        <div class="container">
+            <h2>COMMUNITY</h2>
+            <div class="community-content">
+                <div class="community-features">
+                    <button class="btn btn-secondary" id="shareScoreBtn">Share Score</button>
+                    <button class="btn btn-secondary" id="viewLeaderboardBtn">Global Leaderboard</button>
+                </div>
+                <div class="community-stats">
+                    <h3>Community Stats</h3>
+                    <p>Total Players: <span id="communityTotalPlayers">--</span></p>
+                    <p>Games Played Today: <span id="communityGamesToday">--</span></p>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backFromCommunity">BACK</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements (using Web Audio API - see sound-generator.js) -->
+
+    <!-- Preload critical resources for performance -->
+    <link rel="preload" href="game.js" as="script">
+    <link rel="preload" href="styles.css" as="style">
+
+    <script src="statistics.js"></script>
+    <script src="achievements.js"></script>
+    <script src="settings.js"></script>
+    <script src="daily-challenges.js"></script>
+    <script src="campaign.js"></script>
+    <script src="sound-generator.js"></script>
+    <script src="gamepad.js"></script>
+    <script src="leaderboard.js"></script>
+    <script src="game.js"></script>
+    
+    
+    <!-- Global Error Handling and Analytics -->
+    <script>
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            // Only log if there's an actual error object
+            if (event.error) {
+                console.error('Global error:', event.error);
+            } else if (event.message) {
+                console.error('Global error:', event.message, event.filename, event.lineno);
+            }
+            // Optionally show user-friendly error message
+            if (typeof gameState !== 'undefined' && gameState.currentScreen) {
+                // Could show error notification to user
+            }
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+        });
+
+        // Analytics placeholder - replace with actual analytics
+        function trackEvent(category, action, label) {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', action, {
+                    'event_category': category,
+                    'event_label': label
+                });
+            }
+            // Fallback: log in debug mode only
+            if (typeof DEBUG !== 'undefined' && DEBUG) {
+                console.log('Event:', category, action, label);
+            }
+        }
+
+        // Make trackEvent globally available
+        window.trackEvent = trackEvent;
+    </script>
+
+    <!-- PWA Service Worker Registration -->
+    <script>
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            // Only register if running on HTTP/HTTPS (not file://)
+            if (location.protocol === 'http:' || location.protocol === 'https:') {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('service-worker.js')
+                        .then((registration) => {
+                            if (typeof DEBUG !== 'undefined' && DEBUG) {
+                                console.log('Service Worker registered successfully:', registration.scope);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Service Worker registration failed:', error);
+                        });
+                });
+            } else {
+                if (typeof DEBUG !== 'undefined' && DEBUG) {
+                    console.log('Service Worker: Running on file:// protocol. Use a local server for PWA features.');
+                    console.log('Tip: Use "python -m http.server" or "npx serve" to run locally with HTTP');
+                }
+            }
+        }
+        
+        // Handle PWA install prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show install button if not already installed
+            const installBtn = document.getElementById('installPWA');
+            if (installBtn) {
+                installBtn.style.display = 'block';
+                installBtn.addEventListener('click', () => {
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                        }
+                        deferredPrompt = null;
+                        installBtn.style.display = 'none';
+                    });
+                });
+            }
+        });
+        
+        // Detect if app is running as PWA
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            const installBtn = document.getElementById('installPWA');
+            if (installBtn) {
+                installBtn.style.display = 'none';
+            }
+        });
+        
+        // Check if running in standalone mode (installed)
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            document.body.classList.add('pwa-installed');
+            console.log('Running as PWA');
+        }
+    </script>
+</body>
+</html>
+
