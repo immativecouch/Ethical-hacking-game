@@ -52,27 +52,37 @@ class SettingsManager {
         const root = document.documentElement;
         root.setAttribute('data-theme', this.settings.theme);
         
-        // Force CSS variable update for themes
+        // Force CSS variable update for themes - make them visually distinct
         const themes = {
             cyberpunk: {
                 '--primary-color': '#00ff41',
                 '--secondary-color': '#00d4ff',
-                '--glow-color': 'rgba(0, 255, 65, 0.5)'
+                '--glow-color': 'rgba(0, 255, 65, 0.5)',
+                '--bg-dark': '#0a0a0a',
+                '--bg-card': '#1a1a1a'
             },
             matrix: {
                 '--primary-color': '#00ff00',
-                '--secondary-color': '#00ff88',
-                '--glow-color': 'rgba(0, 255, 0, 0.5)'
+                '--secondary-color': '#00ff00',
+                '--glow-color': 'rgba(0, 255, 0, 0.8)',
+                '--bg-dark': '#000000',
+                '--bg-card': '#0a0a0a',
+                '--text-primary': '#00ff00',
+                '--text-secondary': '#00cc00'
             },
             neon: {
                 '--primary-color': '#ff00ff',
                 '--secondary-color': '#00ffff',
-                '--glow-color': 'rgba(255, 0, 255, 0.5)'
+                '--glow-color': 'rgba(255, 0, 255, 0.5)',
+                '--bg-dark': '#0a0a0a',
+                '--bg-card': '#1a1a1a'
             },
             dark: {
                 '--primary-color': '#ffffff',
                 '--secondary-color': '#cccccc',
-                '--glow-color': 'rgba(255, 255, 255, 0.3)'
+                '--glow-color': 'rgba(255, 255, 255, 0.3)',
+                '--bg-dark': '#0a0a0a',
+                '--bg-card': '#1a1a1a'
             }
         };
         
@@ -98,6 +108,16 @@ class SettingsManager {
         // Apply font size
         document.body.setAttribute('data-font-size', this.settings.fontSize);
 
+        // Apply UI scale - transform the entire body
+        if (this.settings.uiScale !== undefined && this.settings.uiScale !== 100) {
+            const scale = this.settings.uiScale / 100;
+            document.body.style.transform = `scale(${scale})`;
+            document.body.style.transformOrigin = 'top center';
+        } else {
+            document.body.style.transform = '';
+            document.body.style.transformOrigin = '';
+        }
+
         // Apply colorblind mode
         if (this.settings.colorblindMode) {
             document.body.classList.add('colorblind-mode');
@@ -105,11 +125,13 @@ class SettingsManager {
             document.body.classList.remove('colorblind-mode');
         }
 
-        // Apply animations
-        if (!this.settings.animationsEnabled) {
+        // Apply animations - toggle class to enable/disable all animations
+        if (this.settings.animationsEnabled === false) {
             document.body.classList.add('no-animations');
+            document.documentElement.classList.add('no-animations');
         } else {
             document.body.classList.remove('no-animations');
+            document.documentElement.classList.remove('no-animations');
         }
     }
 

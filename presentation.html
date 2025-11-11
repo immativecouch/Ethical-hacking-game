@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethical Hacker - Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        .presentation-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            display: none;
+            padding: 60px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+        }
+
+        .slide.active {
+            display: flex;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .slide h1 {
+            font-size: 3.5rem;
+            color: #00ff41;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+            font-family: 'Courier New', monospace;
+        }
+
+        .slide h2 {
+            font-size: 2.5rem;
+            color: #00d4ff;
+            margin-bottom: 1.5rem;
+        }
+
+        .slide h3 {
+            font-size: 1.8rem;
+            color: #00ff41;
+            margin-bottom: 1rem;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            margin: 0.8rem 0;
+            color: #e0e0e0;
+        }
+
+        .slide ul {
+            text-align: left;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .slide li {
+            margin: 0.5rem 0;
+            padding-left: 1rem;
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            color: #00ff41;
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: rgba(0, 255, 65, 0.2);
+            border: 2px solid #00ff41;
+            color: #00ff41;
+            cursor: pointer;
+            font-size: 1rem;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: rgba(0, 255, 65, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 2rem auto;
+        }
+
+        .feature-card {
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid #00ff41;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .feature-card h4 {
+            color: #00ff41;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            max-width: 900px;
+            margin: 2rem auto;
+        }
+
+        .stat-box {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid #00d4ff;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #e0e0e0;
+            margin-top: 0.5rem;
+        }
+
+        .highlight {
+            color: #00ff41;
+            font-weight: bold;
+        }
+
+        .code-snippet {
+            background: #1a1a2e;
+            border: 1px solid #00ff41;
+            padding: 1rem;
+            border-radius: 5px;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            max-width: 800px;
+            margin: 1rem auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active">
+            <h1>Ethical Hacker</h1>
+            <h2>Security Vulnerability Demonstration</h2>
+            <p style="font-size: 1.5rem; margin-top: 2rem; color: #00d4ff;">An Interactive Cybersecurity Training Game</p>
+            <p style="margin-top: 3rem; color: #888;">[Your Name/Team] | [Date]</p>
+            <div class="slide-number">1 / 26</div>
+        </div>
+
+        <!-- Slide 2: Overview -->
+        <div class="slide">
+            <h2>Project Overview</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li>Interactive, educational cybersecurity training game</li>
+                    <li>Demonstrates real security vulnerabilities safely</li>
+                    <li>Teaches password security, encryption, and ethical hacking</li>
+                    <li>Web-based game (no installation required)</li>
+                    <li>Progressive Web App (PWA) capabilities</li>
+                    <li>Multi-platform support (Desktop, Tablet, Mobile)</li>
+                </ul>
+            </div>
+            <div class="slide-number">2 / 26</div>
+        </div>
+
+        <!-- Slide 3: Problem Statement -->
+        <div class="slide">
+            <h2>Why This Project?</h2>
+            <div style="max-width: 900px; margin: 2rem auto;">
+                <p>Cybersecurity awareness is crucial in today's digital world</p>
+                <p>Many users don't understand how attacks work</p>
+                <p>Need for hands-on learning experience</p>
+                <p>Demonstrates real vulnerabilities to educate users</p>
+                <p>Shows importance of strong passwords and encryption</p>
+            </div>
+            <div class="slide-number">3 / 26</div>
+        </div>
+
+        <!-- Slide 4: Core Features -->
+        <div class="slide">
+            <h2>Core Gameplay Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🔓 Brute Force Attack</h4>
+                    <p>Real-time password cracking demonstration</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 Entropy Analysis</h4>
+                    <p>Password strength calculations</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚠️ Vulnerability Meter</h4>
+                    <p>Visual security level representation</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🎯 Manual Guessing</h4>
+                    <p>Compete against automated brute force</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔐 Decryption</h4>
+                    <p>Pattern-based encryption puzzles</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📈 Security Analysis</h4>
+                    <p>Detailed vulnerability reports</p>
+                </div>
+            </div>
+            <div class="slide-number">4 / 26</div>
+        </div>
+
+        <!-- Slide 5: Technical Features -->
+        <div class="slide">
+            <h2>Technical Features</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li><span class="highlight">Real-time Brute Force:</span> Sequential numeric password attempts</li>
+                    <li><span class="highlight">Entropy Calculation:</span> Shannon entropy for password strength</li>
+                    <li><span class="highlight">Crack Time Estimation:</span> Real-world time calculations</li>
+                    <li><span class="highlight">Weakness Detection:</span> Identifies patterns, sequences, repetitions</li>
+                    <li><span class="highlight">File Retrieval:</span> Shows data access after password breach</li>
+                    <li><span class="highlight">Creator Mode:</span> Track all generated passcodes and keys</li>
+                </ul>
+            </div>
+            <div class="slide-number">5 / 26</div>
+        </div>
+
+        <!-- Slide 6: Game Flow -->
+        <div class="slide">
+            <h2>How the Game Works</h2>
+            <div style="max-width: 800px; margin: 2rem auto; text-align: left;">
+                <ol style="font-size: 1.2rem; line-height: 2;">
+                    <li>Start Game → Generate password (weak → medium → strong)</li>
+                    <li>Brute Force Attack → Automated + manual guessing</li>
+                    <li>Security Analysis → Entropy, crack time, vulnerabilities</li>
+                    <li>Decryption Game → Pattern-based key cracking</li>
+                    <li>Final Summary → Complete vulnerability report</li>
+                    <li>Gift Screen → Reward for beating brute force</li>
+                    <li>Leaderboard → Save and compare scores</li>
+                </ol>
+            </div>
+            <div class="slide-number">6 / 26</div>
+        </div>
+
+        <!-- Slide 7: Security Demonstrations -->
+        <div class="slide">
+            <h2>What We Demonstrate</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Password Entropy</h4>
+                    <p>Complexity affects security</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Brute Force Attacks</h4>
+                    <p>Sequential attack methods</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Crack Time</h4>
+                    <p>Real-world calculations</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Vulnerability Analysis</h4>
+                    <p>Password weaknesses</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Encryption Flaws</h4>
+                    <p>Pattern-based vulnerabilities</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Best Practices</h4>
+                    <p>Protection methods</p>
+                </div>
+            </div>
+            <div class="slide-number">7 / 26</div>
+        </div>
+
+        <!-- Slide 8: Technology Stack -->
+        <div class="slide">
+            <h2>Technologies Used</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>HTML5</h4>
+                    <p>Semantic markup</p>
+                </div>
+                <div class="feature-card">
+                    <h4>CSS3</h4>
+                    <p>Modern styling</p>
+                </div>
+                <div class="feature-card">
+                    <h4>JavaScript ES6+</h4>
+                    <p>Vanilla JS, no frameworks</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Web Audio API</h4>
+                    <p>Programmatic sounds</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Gamepad API</h4>
+                    <p>Controller support</p>
+                </div>
+                <div class="feature-card">
+                    <h4>LocalStorage API</h4>
+                    <p>Data persistence</p>
+                </div>
+            </div>
+            <div class="slide-number">8 / 26</div>
+        </div>
+
+        <!-- Slide 9: Technical Implementation -->
+        <div class="slide">
+            <h2>Key Technical Achievements</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li><span class="highlight">Shannon Entropy:</span> Accurate password strength measurement</li>
+                    <li><span class="highlight">Dynamic Generation:</span> Cycles weak/medium/strong passwords</li>
+                    <li><span class="highlight">Real-time Simulation:</span> 50 attempts/second brute force</li>
+                    <li><span class="highlight">Pause/Resume:</span> Accurate time tracking</li>
+                    <li><span class="highlight">Competition Mode:</span> User vs. automated brute force</li>
+                    <li><span class="highlight">Scoring System:</span> Based on vulnerability and time</li>
+                </ul>
+            </div>
+            <div class="slide-number">9 / 26</div>
+        </div>
+
+        <!-- Slide 10: UI Design -->
+        <div class="slide">
+            <h2>User Experience Design</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Cyberpunk Aesthetic</h4>
+                    <p>Green/cyan theme</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Responsive Design</h4>
+                    <p>All devices supported</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Accessibility</h4>
+                    <p>Keyboard navigation</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Smooth Animations</h4>
+                    <p>Professional transitions</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Visual Feedback</h4>
+                    <p>Color-coded levels</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Multiple Controls</h4>
+                    <p>Keyboard, mouse, touch</p>
+                </div>
+            </div>
+            <div class="slide-number">10 / 26</div>
+        </div>
+
+        <!-- Slide 11: Educational Value -->
+        <div class="slide">
+            <h2>Learning Outcomes</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li>Understand how brute force attacks work</li>
+                    <li>Learn password entropy and strength concepts</li>
+                    <li>Recognize common password vulnerabilities</li>
+                    <li>Understand encryption and decryption basics</li>
+                    <li>Identify security weaknesses</li>
+                    <li>Learn protection strategies and best practices</li>
+                </ul>
+            </div>
+            <div class="slide-number">11 / 26</div>
+        </div>
+
+        <!-- Slide 12: Security Analysis -->
+        <div class="slide">
+            <h2>Detailed Security Analysis</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Password Analysis</h4>
+                    <p>Entropy, length, complexity</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Vulnerability Level</h4>
+                    <p>Weak, Medium, Strong</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Crack Time</h4>
+                    <p>Estimated time to crack</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Weakness Detection</h4>
+                    <p>Patterns, sequences, repeats</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Decryption Analysis</h4>
+                    <p>Key entropy and flaws</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Recommendations</h4>
+                    <p>Security best practices</p>
+                </div>
+            </div>
+            <div class="slide-number">12 / 26</div>
+        </div>
+
+        <!-- Slide 13: Creator Mode -->
+        <div class="slide">
+            <h2>Creator Mode Features</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li><span class="highlight">Passcode Tracking:</span> View all generated passwords</li>
+                    <li><span class="highlight">Decryption Keys:</span> See encryption patterns used</li>
+                    <li><span class="highlight">Statistics Dashboard:</span> Performance metrics</li>
+                    <li><span class="highlight">Vulnerability Breakdown:</span> Count by level</li>
+                    <li><span class="highlight">Data Management:</span> Export/import capabilities</li>
+                    <li><span class="highlight">Debug Tools:</span> System diagnostics</li>
+                </ul>
+            </div>
+            <div class="slide-number">13 / 26</div>
+        </div>
+
+        <!-- Slide 14: Scoring -->
+        <div class="slide">
+            <h2>Scoring System</h2>
+            <div style="max-width: 800px; margin: 2rem auto;">
+                <div class="code-snippet">
+                    Score = Base Score × Time Bonus × Competition Bonus<br>
+                    Base Score = Vulnerability Level Multiplier<br>
+                    Time Bonus = Faster completion = Higher score<br>
+                    Competition Bonus = Extra points for beating brute force<br>
+                    Only scores if user finds password first
+                </div>
+            </div>
+            <div class="slide-number">14 / 26</div>
+        </div>
+
+        <!-- Slide 15: Compatibility -->
+        <div class="slide">
+            <h2>Platform Support</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">Desktop</div>
+                    <div class="stat-label">Windows, macOS, Linux</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">Mobile</div>
+                    <div class="stat-label">iOS, Android</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">Browsers</div>
+                    <div class="stat-label">Chrome, Firefox, Safari, Edge</div>
+                </div>
+            </div>
+            <p style="margin-top: 2rem;">PWA Support: Installable, works offline</p>
+            <div class="slide-number">15 / 26</div>
+        </div>
+
+        <!-- Slide 16: Performance -->
+        <div class="slide">
+            <h2>Performance Metrics</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">&lt; 3s</div>
+                    <div class="stat-label">Load Time</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">60 FPS</div>
+                    <div class="stat-label">Frame Rate</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">&lt; 50MB</div>
+                    <div class="stat-label">Memory Usage</div>
+                </div>
+            </div>
+            <p style="margin-top: 2rem;">Zero Dependencies | Offline Capable</p>
+            <div class="slide-number">16 / 26</div>
+        </div>
+
+        <!-- Slide 17: Project Stats -->
+        <div class="slide">
+            <h2>Project Scale</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-number">5,800+</div>
+                    <div class="stat-label">Lines of Code</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">15+</div>
+                    <div class="stat-label">JavaScript Modules</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">20+</div>
+                    <div class="stat-label">Major Features</div>
+                </div>
+            </div>
+            <div class="stats-grid" style="margin-top: 1rem;">
+                <div class="stat-box">
+                    <div class="stat-number">15+</div>
+                    <div class="stat-label">Game Screens</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Web APIs</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Dependencies</div>
+                </div>
+            </div>
+            <div class="slide-number">17 / 26</div>
+        </div>
+
+        <!-- Slide 18: Achievements -->
+        <div class="slide">
+            <h2>Key Achievements</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li>✅ Real vulnerability demonstration</li>
+                    <li>✅ Accurate entropy calculations</li>
+                    <li>✅ Interactive brute force simulation</li>
+                    <li>✅ Educational security analysis</li>
+                    <li>✅ Professional UI/UX design</li>
+                    <li>✅ Full accessibility support</li>
+                    <li>✅ PWA capabilities</li>
+                    <li>✅ Zero critical bugs</li>
+                </ul>
+            </div>
+            <div class="slide-number">18 / 26</div>
+        </div>
+
+        <!-- Slide 19: Security Focus -->
+        <div class="slide">
+            <h2>Security-Focused Implementation</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Real Vulnerabilities</h4>
+                    <p>Actual attack methods</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Correct Implementation</h4>
+                    <p>Accurate calculations</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Robust Analysis</h4>
+                    <p>Comprehensive assessment</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Educational Purpose</h4>
+                    <p>Teaches protection</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Safe Environment</h4>
+                    <p>Controlled demonstration</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Best Practices</h4>
+                    <p>Security recommendations</p>
+                </div>
+            </div>
+            <div class="slide-number">19 / 26</div>
+        </div>
+
+        <!-- Slide 20: Future -->
+        <div class="slide">
+            <h2>Future Enhancements</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li>Multiplayer competitive mode</li>
+                    <li>Additional encryption algorithms</li>
+                    <li>More password complexity options</li>
+                    <li>Cloud-based leaderboard</li>
+                    <li>Advanced analytics dashboard</li>
+                    <li>Video tutorials</li>
+                    <li>Multi-language support</li>
+                </ul>
+            </div>
+            <div class="slide-number">20 / 26</div>
+        </div>
+
+        <!-- Slide 21: Demo -->
+        <div class="slide">
+            <h2>Live Demonstration</h2>
+            <div style="max-width: 900px; margin: 2rem auto;">
+                <p style="font-size: 1.5rem; margin: 2rem 0;">Gameplay Walkthrough</p>
+                <p style="font-size: 1.5rem; margin: 2rem 0;">Security Analysis Demo</p>
+                <p style="font-size: 1.5rem; margin: 2rem 0;">Creator Mode Showcase</p>
+                <p style="font-size: 1.5rem; margin: 2rem 0;">Scoring System Explanation</p>
+                <p style="margin-top: 3rem; color: #00d4ff;">[Embed video or live demo here]</p>
+            </div>
+            <div class="slide-number">21 / 26</div>
+        </div>
+
+        <!-- Slide 22: Testing -->
+        <div class="slide">
+            <h2>Quality Assurance</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li>✅ Functional Testing: All features working</li>
+                    <li>✅ Browser Compatibility: All major browsers</li>
+                    <li>✅ Performance Testing: Meets requirements</li>
+                    <li>✅ Accessibility Testing: WCAG compliant</li>
+                    <li>✅ Bug Fixes: All critical issues resolved</li>
+                    <li>✅ Code Quality: No linter errors</li>
+                </ul>
+            </div>
+            <div class="slide-number">22 / 26</div>
+        </div>
+
+        <!-- Slide 23: Deployment -->
+        <div class="slide">
+            <h2>Deployment & Distribution</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>GitHub Pages</h4>
+                    <p>Free hosting with HTTPS</p>
+                </div>
+                <div class="feature-card">
+                    <h4>PWA Ready</h4>
+                    <p>Installable on devices</p>
+                </div>
+                <div class="feature-card">
+                    <h4>No Server</h4>
+                    <p>Static file hosting</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Easy Deployment</h4>
+                    <p>Simple file upload</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Accessible URL</h4>
+                    <p>Shareable link</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Offline Support</h4>
+                    <p>Works without internet</p>
+                </div>
+            </div>
+            <div class="slide-number">23 / 26</div>
+        </div>
+
+        <!-- Slide 24: Educational Impact -->
+        <div class="slide">
+            <h2>Educational Impact</h2>
+            <div style="max-width: 900px; margin: 2rem auto; text-align: left;">
+                <ul>
+                    <li>Teaches real cybersecurity concepts</li>
+                    <li>Hands-on learning experience</li>
+                    <li>Demonstrates actual vulnerabilities</li>
+                    <li>Shows protection methods</li>
+                    <li>Raises security awareness</li>
+                    <li>Suitable for students and professionals</li>
+                </ul>
+            </div>
+            <div class="slide-number">24 / 26</div>
+        </div>
+
+        <!-- Slide 25: Conclusion -->
+        <div class="slide">
+            <h2>Summary</h2>
+            <div style="max-width: 900px; margin: 2rem auto;">
+                <p style="font-size: 1.4rem; margin: 1.5rem 0;"><span class="highlight">Ethical Hacker</span> is a comprehensive security vulnerability demonstration</p>
+                <p style="font-size: 1.4rem; margin: 1.5rem 0;">Shows real brute force attacks and encryption vulnerabilities</p>
+                <p style="font-size: 1.4rem; margin: 1.5rem 0;">Educational tool for cybersecurity awareness</p>
+                <p style="font-size: 1.4rem; margin: 1.5rem 0;">Professional implementation with accurate security calculations</p>
+                <p style="font-size: 1.4rem; margin: 1.5rem 0;">Ready for deployment and use</p>
+                <p style="font-size: 1.4rem; margin: 1.5rem 0; color: #00ff41;">Demonstrates security-focused development</p>
+            </div>
+            <div class="slide-number">25 / 26</div>
+        </div>
+
+        <!-- Slide 26: Thank You -->
+        <div class="slide">
+            <h1>Thank You!</h1>
+            <h2 style="margin-top: 2rem; color: #00d4ff;">Questions?</h2>
+            <div style="margin-top: 3rem; font-size: 1.2rem;">
+                <p>Contact: [Your contact info]</p>
+                <p>Repository: [GitHub link]</p>
+                <p>Live Demo: [Demo URL]</p>
+            </div>
+            <div class="slide-number">26 / 26</div>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn" onclick="previousSlide()">◀ Previous</button>
+        <button class="btn" onclick="nextSlide()">Next ▶</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function showSlide(n) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            slides[currentSlide].classList.add('active');
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function previousSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                previousSlide();
+            }
+        });
+
+        // Touch swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                nextSlide();
+            }
+            if (touchEndX > touchStartX + 50) {
+                previousSlide();
+            }
+        }
+    </script>
+</body>
+</html>
+

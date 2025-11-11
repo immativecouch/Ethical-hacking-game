@@ -255,52 +255,70 @@ if (DEBUG) {
 class GameState {
     constructor() {
         this.currentScreen = 'mainMenu';
-        this.selectedDevice = null;
-        this.selectedDifficulty = null;
         this.password = '';
         this.passwordLength = 4;
-        this.currentPassword = [];
-        this.selectedCell = { row: 0, col: 0 };
-        this.gridSize = 8;
-        this.grid = [];
         this.attempts = 0;
-        this.maxAttempts = 10;
+        this.maxAttempts = 1000;
         this.score = 0;
-        this.timeRemaining = 60;
+        this.timeRemaining = 300; // 5 minutes default
         this.timerInterval = null;
         this.gameStarted = false;
         this.filesRetrieved = false;
         this.filesDecrypted = false;
         this.encryptedFiles = [];
         this.decryptionKey = '';
-        this.passwordHint = '';
-        this.lastMoveTime = 0;
-        this.moveCooldown = 200; // milliseconds between moves
-        this.passwordPositions = [];
-        this.breachSequence = [];
-        this.breachInput = [];
-        this.hintLevel = 0;
-        this.hintNotificationShown = false;
-        this.isCampaignMode = false;
-        this.currentCampaignLevel = null;
+        // Security analysis properties
+        this.passwordEntropy = 0;
+        this.vulnerabilityLevel = 'weak';
+        this.crackTime = 0;
+        this.weaknesses = [];
+        this.bruteForceAttempts = 0;
+        this.attackSpeed = 50; // attempts per second (reasonable speed for demonstration)
+        this.startTime = null;
+        this.actualCrackTime = 0;
+        this.bruteForceInterval = null;
+        this.isBruteForceRunning = false;
+        this.currentGuess = '';
+        // User type and mode
+        this.userType = ''; // 'judge' or 'audience'
+        this.gameMode = ''; // 'compete' or 'watch'
+        this.userFoundPassword = false; // Whether user found password before brute force
+        this.competitionStartTime = null;
+        this.isPaused = false; // Track pause state
+        this.pauseStartTime = null; // When pause started
+        this.totalPausedTime = 0; // Total time spent paused
+        this.statsUpdateInterval = null; // Interval for updating stats display
     }
 
     reset() {
-        this.currentPassword = [];
-        this.selectedCell = { row: 0, col: 0 };
         this.attempts = 0;
         this.score = 0;
         this.filesRetrieved = false;
         this.filesDecrypted = false;
         this.encryptedFiles = [];
         this.decryptionKey = '';
-        this.passwordHint = '';
-        this.lastMoveTime = 0;
-        this.passwordPositions = [];
-        this.breachSequence = [];
-        this.breachInput = [];
-        this.hintLevel = 0;
-        this.hintNotificationShown = false;
+        this.passwordEntropy = 0;
+        this.vulnerabilityLevel = 'weak';
+        this.crackTime = 0;
+        this.weaknesses = [];
+        this.bruteForceAttempts = 0;
+        this.startTime = null;
+        this.actualCrackTime = 0;
+        this.currentGuess = '';
+        this.isBruteForceRunning = false;
+        this.userFoundPassword = false;
+        this.competitionStartTime = null;
+        this.isPaused = false;
+        this.pauseStartTime = null;
+        this.totalPausedTime = 0;
+        if (this.bruteForceInterval) {
+            clearInterval(this.bruteForceInterval);
+            this.bruteForceInterval = null;
+        }
+        if (this.statsUpdateInterval) {
+            clearInterval(this.statsUpdateInterval);
+            this.statsUpdateInterval = null;
+        }
     }
 
     saveGameState() {
@@ -310,19 +328,18 @@ class GameState {
         try {
             const saveData = {
                 currentScreen: this.currentScreen,
-                selectedDevice: this.selectedDevice,
-                selectedDifficulty: this.selectedDifficulty,
                 password: this.password,
-                currentPassword: [...this.currentPassword],
-                selectedCell: {...this.selectedCell},
                 attempts: this.attempts,
                 score: this.score,
                 timeRemaining: this.timeRemaining,
-                grid: this.grid.map(row => [...row]),
-                passwordPositions: [...this.passwordPositions],
                 gameStarted: this.gameStarted,
                 filesRetrieved: this.filesRetrieved,
                 filesDecrypted: this.filesDecrypted,
+                passwordEntropy: this.passwordEntropy,
+                vulnerabilityLevel: this.vulnerabilityLevel,
+                crackTime: this.crackTime,
+                weaknesses: this.weaknesses,
+                bruteForceAttempts: this.bruteForceAttempts,
                 timestamp: Date.now()
             };
             localStorage.setItem('gameSaveState', JSON.stringify(saveData));
@@ -339,19 +356,18 @@ class GameState {
                 // Check if save is not too old (24 hours)
                 if (Date.now() - data.timestamp < 86400000) {
                     this.currentScreen = data.currentScreen || this.currentScreen;
-                    this.selectedDevice = data.selectedDevice;
-                    this.selectedDifficulty = data.selectedDifficulty;
                     this.password = data.password || '';
-                    this.currentPassword = data.currentPassword || [];
-                    this.selectedCell = data.selectedCell || { row: 0, col: 0 };
                     this.attempts = data.attempts || 0;
                     this.score = data.score || 0;
-                    this.timeRemaining = data.timeRemaining || 60;
-                    this.grid = data.grid || [];
-                    this.passwordPositions = data.passwordPositions || [];
+                    this.timeRemaining = data.timeRemaining || 300;
                     this.gameStarted = data.gameStarted || false;
                     this.filesRetrieved = data.filesRetrieved || false;
                     this.filesDecrypted = data.filesDecrypted || false;
+                    this.passwordEntropy = data.passwordEntropy || 0;
+                    this.vulnerabilityLevel = data.vulnerabilityLevel || 'weak';
+                    this.crackTime = data.crackTime || 0;
+                    this.weaknesses = data.weaknesses || [];
+                    this.bruteForceAttempts = data.bruteForceAttempts || 0;
                     return true;
                 } else {
                     // Save is too old, clear it
@@ -370,6 +386,197 @@ class GameState {
 }
 
 const gameState = new GameState();
+
+// ============================================================================
+// Security Analysis Functions
+// ============================================================================
+
+/**
+ * Calculate password entropy using Shannon entropy
+ * For numeric passwords: entropy = log2(10^length)
+ * @param {string} password - The password to analyze
+ * @returns {number} Entropy in bits
+ */
+function calculateEntropy(password) {
+    if (!password || password.length === 0) return 0;
+    
+    const length = password.length;
+    const digitCounts = {};
+    const uniqueDigits = new Set();
+    
+    // Count frequency of each digit and track unique digits
+    for (let i = 0; i < password.length; i++) {
+        const digit = password[i];
+        digitCounts[digit] = (digitCounts[digit] || 0) + 1;
+        uniqueDigits.add(digit);
+    }
+    
+    // Calculate Shannon entropy per digit: H = -Σ(p(x) * log2(p(x)))
+    let shannonEntropyPerDigit = 0;
+    for (const digit in digitCounts) {
+        const probability = digitCounts[digit] / length;
+        if (probability > 0) {
+            shannonEntropyPerDigit -= probability * Math.log2(probability);
+        }
+    }
+    
+    // Total Shannon entropy
+    let shannonEntropy = shannonEntropyPerDigit * length;
+    
+    // For password strength, we also consider the effective password space
+    // Maximum possible entropy for numeric password = log2(10^length)
+    const maxPossibleEntropy = Math.log2(Math.pow(10, length));
+    
+    // Adjust entropy based on patterns:
+    // 1. If all digits are the same: very low entropy
+    if (uniqueDigits.size === 1) {
+        return parseFloat((Math.log2(10)).toFixed(2)); // Only 10 possibilities
+    }
+    
+    // 2. If all digits are different: higher entropy
+    // For n unique digits in length L, calculate permutations
+    if (uniqueDigits.size === length) {
+        // All different digits: P(10, length) = 10!/(10-length)! possibilities
+        // This gives us the actual password space
+        let permutations = 1;
+        for (let i = 0; i < length; i++) {
+            permutations *= (10 - i);
+        }
+        shannonEntropy = Math.log2(permutations);
+    } else {
+        // Mixed: use Shannon entropy but adjust for reduced space due to repetition
+        // For passwords with repetition, effective space is less
+        // Calculate based on multinomial coefficient
+        const repetitionFactor = uniqueDigits.size / length;
+        // Scale Shannon entropy by the uniqueness factor
+        shannonEntropy = shannonEntropyPerDigit * length * (1 + repetitionFactor * 0.5);
+    }
+    
+    // Cap at maximum possible entropy for numeric
+    let entropy = Math.min(shannonEntropy, maxPossibleEntropy);
+    
+    // Ensure minimum entropy for all-different case
+    if (uniqueDigits.size === length && entropy < Math.log2(10)) {
+        // Should have at least log2(10) bits for all-different digits
+        entropy = Math.log2(10) + (uniqueDigits.size - 1) * Math.log2(9);
+    }
+    
+    return parseFloat(entropy.toFixed(2));
+}
+
+/**
+ * Classify password strength based on entropy
+ * For numeric passwords, adjusted thresholds:
+ * Weak: < 13 bits (patterns, repeated digits, low randomness)
+ * Medium: 13-17 bits (some patterns, mixed randomness)
+ * Strong: >= 17 bits (highly random, all different digits, maximum entropy for numeric)
+ * Note: For numeric passwords, maximum entropy is ~19.93 bits (6 digits)
+ * @param {number} entropy - Password entropy in bits
+ * @returns {string} 'weak', 'medium', or 'strong'
+ */
+function classifyPasswordStrength(entropy) {
+    if (entropy < 13) return 'weak';
+    if (entropy < 17) return 'medium';
+    return 'strong';
+}
+
+/**
+ * Analyze password weaknesses
+ * @param {string} password - The password to analyze
+ * @returns {Array<string>} Array of weakness descriptions
+ */
+function analyzeWeaknesses(password) {
+    const weaknesses = [];
+    
+    if (!password) return weaknesses;
+    
+    const length = password.length;
+    
+    // Check length
+    if (length < 4) {
+        weaknesses.push('Too short (minimum 4 digits recommended)');
+    } else if (length < 6) {
+        weaknesses.push('Short length (6+ digits recommended)');
+    }
+    
+    // Check for sequential patterns (e.g., 1234, 4321)
+    const isSequential = (str) => {
+        let increasing = true;
+        let decreasing = true;
+        for (let i = 1; i < str.length; i++) {
+            const prev = parseInt(str[i - 1]);
+            const curr = parseInt(str[i]);
+            if (curr !== prev + 1) increasing = false;
+            if (curr !== prev - 1) decreasing = false;
+        }
+        return increasing || decreasing;
+    };
+    
+    if (isSequential(password)) {
+        weaknesses.push('Sequential pattern detected (e.g., 1234, 4321)');
+    }
+    
+    // Check for repeated digits
+    const repeatedDigits = password.match(/(\d)\1{2,}/g);
+    if (repeatedDigits) {
+        weaknesses.push('Repeated digits detected (e.g., 1111, 2222)');
+    }
+    
+    // Check for common patterns
+    const commonPatterns = ['0000', '1111', '1234', '4321', '9999', '0001', '12345', '54321'];
+    if (commonPatterns.includes(password)) {
+        weaknesses.push('Common pattern detected');
+    }
+    
+    // Check if all digits are the same
+    if (new Set(password.split('')).size === 1) {
+        weaknesses.push('All digits are identical');
+    }
+    
+    // Check for low entropy
+    const entropy = calculateEntropy(password);
+    if (entropy < 13) {
+        weaknesses.push('Very low entropy (easily guessable)');
+    }
+    
+    return weaknesses;
+}
+
+/**
+ * Calculate estimated crack time based on entropy and attack speed
+ * @param {number} entropy - Password entropy in bits
+ * @param {number} attackSpeed - Attacks per second
+ * @param {number} passwordLength - Password length
+ * @returns {number} Estimated time in seconds
+ */
+function calculateCrackTime(entropy, attackSpeed, passwordLength) {
+    if (entropy === 0 || attackSpeed === 0) return 0;
+    
+    // Password space = 10^length for numeric
+    const passwordSpace = Math.pow(10, passwordLength);
+    
+    // Average attempts needed = passwordSpace / 2
+    const averageAttempts = passwordSpace / 2;
+    
+    // Time in seconds = attempts / attacks per second
+    const timeInSeconds = averageAttempts / attackSpeed;
+    
+    return Math.max(0, timeInSeconds);
+}
+
+/**
+ * Format crack time for display
+ * @param {number} seconds - Time in seconds
+ * @returns {string} Formatted time string
+ */
+function formatCrackTime(seconds) {
+    if (seconds < 1) return '< 1 second';
+    if (seconds < 60) return `${seconds.toFixed(2)} seconds`;
+    if (seconds < 3600) return `${(seconds / 60).toFixed(2)} minutes`;
+    if (seconds < 86400) return `${(seconds / 3600).toFixed(2)} hours`;
+    if (seconds < 31536000) return `${(seconds / 86400).toFixed(2)} days`;
+    return `${(seconds / 31536000).toFixed(2)} years`;
+}
 
 // Screen Management
 function showScreen(screenId) {
@@ -424,68 +631,1216 @@ function detectDeviceType() {
 // Store all generated passcodes for creator mode
 let allGeneratedPasscodes = [];
 
-// Initialize Game
+// Track password generation to cycle: weak -> medium -> strong -> loop
+let passwordGenerationCounter = 0;
+
+/**
+ * Generate numeric password based on cycling strength requirements
+ * Cycles: weak -> medium -> strong -> weak (repeats)
+ * Weak: 4 digits, < 20 bits entropy (allows patterns, repeated digits)
+ * Medium: 5-6 digits, 20-40 bits entropy (some patterns, less repetition)
+ * Strong: 6 digits, > 40 bits entropy (minimal patterns, high randomness)
+ * @returns {string} Numeric password
+ */
+function generatePassword() {
+    passwordGenerationCounter++;
+    
+    // Cycle: weak (1) -> medium (2) -> strong (3) -> weak (4) -> ...
+    const cyclePosition = ((passwordGenerationCounter - 1) % 3) + 1;
+    let targetVulnerabilityLevel;
+    let passwordLength;
+    let minEntropy, maxEntropy;
+    
+    if (cyclePosition === 1) {
+        // Weak password: 4 digits, < 13 bits (patterns, repeated digits)
+        targetVulnerabilityLevel = 'weak';
+        passwordLength = 4;
+        minEntropy = 0;
+        maxEntropy = 12.9;
+    } else if (cyclePosition === 2) {
+        // Medium password: 5-6 digits, 13-17 bits (some patterns, mixed)
+        targetVulnerabilityLevel = 'medium';
+        passwordLength = Math.random() < 0.7 ? 5 : 6;
+        minEntropy = 13;
+        maxEntropy = 16.9;
+    } else {
+        // Strong password: 6 digits, >= 17 bits (highly random, all different digits)
+        targetVulnerabilityLevel = 'strong';
+        passwordLength = 6;
+        minEntropy = 17;
+        maxEntropy = 20; // Max realistic entropy for 6-digit numeric (all different digits)
+    }
+    
+    // Generate password with target entropy
+    let password = '';
+    let entropy = 0;
+    let attempts = 0;
+    const maxAttempts = 50;
+    
+    do {
+        password = '';
+        
+        if (targetVulnerabilityLevel === 'weak') {
+            // Weak: Allow patterns, repeated digits, sequences (low entropy)
+            // Generate with higher chance of patterns
+            if (Math.random() < 0.4) {
+                // Generate sequential pattern (e.g., 1234, 4321)
+                const start = Math.floor(Math.random() * 7);
+                const direction = Math.random() < 0.5 ? 1 : -1;
+                for (let i = 0; i < passwordLength; i++) {
+                    password += ((start + i * direction + 10) % 10).toString();
+                }
+            } else if (Math.random() < 0.3) {
+                // Generate repeated digits (e.g., 1111, 2222)
+                const digit = Math.floor(Math.random() * 10);
+                password = digit.toString().repeat(passwordLength);
+            } else {
+                // Generate random but allow some repetition
+                const digits = [];
+                for (let i = 0; i < passwordLength; i++) {
+                    // Higher chance of repeating digits for weak passwords
+                    if (i > 0 && Math.random() < 0.3) {
+                        digits.push(digits[Math.floor(Math.random() * i)]);
+                    } else {
+                        digits.push(Math.floor(Math.random() * 10));
+                    }
+                }
+                password = digits.join('');
+            }
+        } else if (targetVulnerabilityLevel === 'medium') {
+            // Medium: Some patterns allowed, less repetition
+            if (Math.random() < 0.2) {
+                // Generate alternating pattern (e.g., 1357, 2468)
+                const start = Math.floor(Math.random() * 5);
+                const step = Math.floor(Math.random() * 3) + 2;
+                for (let i = 0; i < passwordLength; i++) {
+                    password += ((start + i * step) % 10).toString();
+                }
+            } else {
+                // Generate mostly random with minimal repetition
+                const usedDigits = new Set();
+                for (let i = 0; i < passwordLength; i++) {
+                    let digit;
+                    let tries = 0;
+                    do {
+                        digit = Math.floor(Math.random() * 10);
+                        tries++;
+                    } while (tries < 10 && usedDigits.has(digit) && Math.random() < 0.5);
+                    usedDigits.add(digit);
+                    password += digit.toString();
+                }
+            }
+        } else {
+            // Strong: High randomness, minimal patterns
+            // Generate completely random password with high entropy
+            const usedDigits = new Set();
+            for (let i = 0; i < passwordLength; i++) {
+                let digit;
+                let tries = 0;
+                // Avoid too much repetition for strong passwords
+                do {
+                    digit = Math.floor(Math.random() * 10);
+                    tries++;
+                } while (tries < 20 && usedDigits.has(digit) && usedDigits.size < passwordLength - 1);
+                usedDigits.add(digit);
+                password += digit.toString();
+            }
+        }
+        
+        entropy = calculateEntropy(password);
+        attempts++;
+    } while (
+        attempts < maxAttempts && 
+        (entropy < minEntropy || entropy > maxEntropy)
+    );
+    
+    // If we couldn't generate within range after max attempts, use what we have
+    // but adjust if way off
+    if (targetVulnerabilityLevel === 'weak' && entropy >= 13) {
+        // Force weak by using more repetition
+        const digit = password[0];
+        password = digit.toString().repeat(passwordLength);
+        entropy = calculateEntropy(password);
+    } else if (targetVulnerabilityLevel === 'medium' && entropy < 13) {
+        // Force medium by ensuring some variety
+        const digits = [];
+        const available = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        // Use 3-4 different digits for medium
+        const numUnique = Math.min(passwordLength, Math.floor(passwordLength * 0.7));
+        for (let i = 0; i < passwordLength; i++) {
+            if (i < numUnique) {
+                const idx = Math.floor(Math.random() * available.length);
+                digits.push(available[idx]);
+                available.splice(idx, 1);
+            } else {
+                // Repeat some digits
+                digits.push(digits[Math.floor(Math.random() * digits.length)]);
+            }
+        }
+        // Shuffle
+        for (let i = digits.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [digits[i], digits[j]] = [digits[j], digits[i]];
+        }
+        password = digits.join('');
+        entropy = calculateEntropy(password);
+    } else if (targetVulnerabilityLevel === 'strong' && entropy < 17) {
+        // Force strong by ensuring all different digits (maximum entropy for numeric)
+        const digits = [];
+        const available = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        for (let i = 0; i < passwordLength; i++) {
+            const idx = Math.floor(Math.random() * available.length);
+            digits.push(available[idx]);
+            available.splice(idx, 1);
+        }
+        password = digits.join('');
+        entropy = calculateEntropy(password);
+    }
+    
+    return password;
+}
+
+/**
+ * Initialize game with brute force demonstration
+ */
 function initializeGame() {
     gameState.reset();
     gameState.gameStarted = true;
+    gameState.gameMode = 'compete'; // Default to compete mode (user can input password)
     
-    // Auto-detect device if not selected
-    if (!gameState.selectedDevice) {
-        gameState.selectedDevice = detectDeviceType();
-    }
+    // Generate numeric password
+    gameState.password = generatePassword();
+    gameState.passwordLength = gameState.password.length;
     
-    // Generate random password
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    gameState.password = '';
-    for (let i = 0; i < gameState.passwordLength; i++) {
-        gameState.password += chars[Math.floor(Math.random() * chars.length)];
-    }
+    // Calculate security metrics
+    gameState.passwordEntropy = calculateEntropy(gameState.password);
+    gameState.vulnerabilityLevel = classifyPasswordStrength(gameState.passwordEntropy);
+    gameState.weaknesses = analyzeWeaknesses(gameState.password);
+    gameState.crackTime = calculateCrackTime(
+        gameState.passwordEntropy,
+        gameState.attackSpeed,
+        gameState.passwordLength
+    );
     
     // Store passcode for creator mode
     const passcodeEntry = {
         password: gameState.password,
-        device: gameState.selectedDevice,
-        difficulty: gameState.selectedDifficulty,
+        passwordLength: gameState.passwordLength,
+        entropy: gameState.passwordEntropy,
+        vulnerabilityLevel: gameState.vulnerabilityLevel,
         timestamp: new Date().toISOString(),
         time: Date.now()
     };
     allGeneratedPasscodes.push(passcodeEntry);
     savePasscodesToStorage();
     
-    // Generate hint (show unique characters in password) - make it more helpful
-    const uniqueChars = [...new Set(gameState.password.split(''))];
-    const charCounts = {};
-    gameState.password.split('').forEach(char => {
-        charCounts[char] = (charCounts[char] || 0) + 1;
-    });
+    // Note: Decryption key will be added to the entry when decryption is completed
     
-    // Create detailed hint
-    let hintText = `Password contains: ${uniqueChars.join(', ')}`;
-    if (Object.keys(charCounts).length < gameState.passwordLength) {
-        const repeated = Object.entries(charCounts).filter(([char, count]) => count > 1);
-        if (repeated.length > 0) {
-            hintText += ` (${repeated.map(([char, count]) => `${char} appears ${count} times`).join(', ')})`;
-        }
-    }
-    gameState.passwordHint = hintText;
-    gameState.passwordPositions = []; // Store password positions for highlighting
+    // Show brute force screen
+    showScreen('bruteForceGame');
+    initializeBruteForceScreen();
     
-    // Reset hint system
-    gameState.hintLevel = 0;
-    gameState.hintNotificationShown = false;
-    hideHintNotification();
-    
-    // Update UI
-    updateDeviceDisplay();
-    updatePasswordSlots();
-    createCrosswordGrid();
-    updateHint();
-    updateAttemptsDisplay();
-    startTimer();
+    // Auto-start brute force attack (user can compete by entering password manually)
+    gameState.competitionStartTime = Date.now();
+    setTimeout(() => {
+        startBruteForceAttack();
+    }, 500);
     
     // Start background music (using sound generator)
     if (window.soundGenerator && !window.bgMusicNode) {
         window.bgMusicNode = window.soundGenerator.startBackgroundMusic();
+    }
+}
+
+/**
+ * Initialize brute force attack screen
+ */
+function initializeBruteForceScreen() {
+    // Update UI with password info
+    const passwordLengthEl = document.getElementById('passwordLengthDisplay');
+    if (passwordLengthEl) {
+        passwordLengthEl.textContent = `${gameState.passwordLength}-digit numeric password`;
+    }
+    
+    // Display security info
+    updateBruteForceSecurityInfo();
+    
+    // Reset brute force state
+    gameState.bruteForceAttempts = 0;
+    gameState.startTime = Date.now();
+    gameState.currentGuess = '0000'.padStart(gameState.passwordLength, '0');
+    
+    // Clear previous attempts display
+    const attemptsList = document.getElementById('bruteForceAttemptsList');
+    if (attemptsList) {
+        attemptsList.innerHTML = '';
+    }
+    
+    // Update progress
+    updateBruteForceProgress();
+    
+    // Show start button
+    const startBtn = document.getElementById('startBruteForceBtn');
+    if (startBtn) {
+        startBtn.style.display = 'block';
+        startBtn.disabled = false;
+    }
+    
+    const pauseBtn = document.getElementById('pauseBruteForceBtn');
+    if (pauseBtn) {
+        pauseBtn.style.display = 'none';
+    }
+    
+    // Show password hints if medium/strong
+    showPasswordHints();
+    
+    // Clear manual input
+    const manualInput = document.getElementById('manualPasswordInput');
+    if (manualInput) {
+        manualInput.value = '';
+        manualInput.maxLength = gameState.passwordLength;
+        manualInput.placeholder = `Enter ${gameState.passwordLength}-digit password`;
+    }
+    
+    // Clear feedback
+    const feedbackEl = document.getElementById('manualGuessFeedback');
+    if (feedbackEl) {
+        feedbackEl.innerHTML = '';
+    }
+}
+
+/**
+ * Show password hints for all passwords (weak, medium, and strong)
+ */
+function showPasswordHints() {
+    const hintsContainer = document.getElementById('passwordHints');
+    const hintContent = document.getElementById('hintContent');
+    
+    if (!hintsContainer || !hintContent) return;
+    
+    // Show hints for all passwords (weak, medium, and strong)
+    hintsContainer.style.display = 'block';
+    
+    const password = gameState.password;
+    const length = password.length;
+    const level = gameState.vulnerabilityLevel;
+    let hints = [];
+    
+    // Hint intensity based on vulnerability level
+    // Weak: More hints (easier to solve)
+    // Medium: Moderate hints
+    // Strong: Fewer hints (harder to solve)
+    
+    if (level === 'weak') {
+        // Weak passwords: Provide more helpful hints
+        hints.push(`First digit: ${password[0]}`);
+        hints.push(`Last digit: ${password[length - 1]}`);
+        hints.push(`Sum of all digits: ${password.split('').reduce((a, b) => parseInt(a) + parseInt(b), 0)}`);
+        
+        // Check for patterns and provide specific hints
+        if (password.match(/\d{4}/)) {
+            const isSequential = /0123|1234|2345|3456|4567|5678|6789|9876|8765|7654|6543|5432|4321|3210/.test(password);
+            if (isSequential) {
+                hints.push(`Hint: Sequential pattern detected (e.g., 1234, 4321)`);
+            }
+        }
+        
+        if (password.match(/(\d)\1{2,}/)) {
+            hints.push(`Hint: Contains repeated digits`);
+        }
+        
+        if (length >= 4) {
+            const midIndex = Math.floor(length / 2);
+            hints.push(`Middle digit: ${password[midIndex]}`);
+        }
+    } else if (level === 'medium') {
+        // Medium passwords: Provide moderate hints
+        hints.push(`First digit: ${password[0]}`);
+        hints.push(`Last digit: ${password[length - 1]}`);
+        hints.push(`Sum of all digits: ${password.split('').reduce((a, b) => parseInt(a) + parseInt(b), 0)}`);
+        
+        // Check for patterns but be less specific
+        const weaknesses = analyzeWeaknesses(password);
+        if (weaknesses.length > 0) {
+            if (password.match(/(\d)\1{2,}/)) {
+                hints.push(`Hint: May contain some repeated digits`);
+            } else if (password.match(/[0-9]{4,6}/)) {
+                hints.push(`Hint: Look for patterns in the digits`);
+            }
+        }
+        
+        if (length >= 5) {
+            const midIndex = Math.floor(length / 2);
+            hints.push(`Middle digit: ${password[midIndex]}`);
+        }
+    } else {
+        // Strong passwords: Provide fewer, more cryptic hints
+        hints.push(`First digit: ${password[0]}`);
+        hints.push(`Sum of all digits: ${password.split('').reduce((a, b) => parseInt(a) + parseInt(b), 0)}`);
+        
+        // For strong passwords, only give minimal hints
+        if (length >= 6) {
+            hints.push(`Hint: All digits are different (high randomness)`);
+        }
+    }
+    
+    hintContent.innerHTML = '<ul>' + hints.map(h => `<li>${h}</li>`).join('') + '</ul>';
+}
+
+/**
+ * Handle manual password guess
+ */
+function tryManualPassword() {
+    const inputEl = document.getElementById('manualPasswordInput');
+    const feedbackEl = document.getElementById('manualGuessFeedback');
+    
+    if (!inputEl) return;
+    
+    const rawGuess = inputEl.value.trim();
+    
+    if (!rawGuess || rawGuess.length === 0) {
+        if (feedbackEl) {
+            feedbackEl.innerHTML = `<span style="color: #ffaa00;">Please enter a password guess</span>`;
+        }
+        return;
+    }
+    
+    // Pad to correct length
+    const guess = rawGuess.padStart(gameState.passwordLength, '0');
+    
+    if (guess.length !== gameState.passwordLength) {
+        if (feedbackEl) {
+            feedbackEl.innerHTML = `<span style="color: #ffaa00;">Please enter a ${gameState.passwordLength}-digit password</span>`;
+        }
+        return;
+    }
+    
+    // Check if password is correct
+    if (guess === gameState.password) {
+        // User found the password!
+        gameState.userFoundPassword = true;
+        
+        // Stop brute force attack
+        stopBruteForceAttack();
+        
+        // Calculate time taken (accounting for pauses)
+        if (gameState.competitionStartTime) {
+            let elapsed = (Date.now() - gameState.competitionStartTime) / 1000;
+            if (gameState.totalPausedTime) {
+                elapsed -= gameState.totalPausedTime;
+            }
+            if (gameState.isPaused && gameState.pauseStartTime) {
+                elapsed -= (Date.now() - gameState.pauseStartTime) / 1000;
+            }
+            gameState.actualCrackTime = Math.max(0, elapsed);
+        } else if (gameState.startTime) {
+            let elapsed = (Date.now() - gameState.startTime) / 1000;
+            if (gameState.totalPausedTime) {
+                elapsed -= gameState.totalPausedTime;
+            }
+            if (gameState.isPaused && gameState.pauseStartTime) {
+                elapsed -= (Date.now() - gameState.pauseStartTime) / 1000;
+            }
+            gameState.actualCrackTime = Math.max(0, elapsed);
+        } else {
+            gameState.actualCrackTime = 0;
+        }
+        
+        gameState.filesRetrieved = true;
+        gameState.bruteForceAttempts++; // Count manual guess as an attempt
+        
+        // Calculate score based on vulnerability level and time
+        calculateUserScore();
+        
+        // Clear input
+        inputEl.value = '';
+        
+        // Show success
+        if (feedbackEl) {
+            feedbackEl.innerHTML = `<span style="color: #00ff41; font-weight: bold; font-size: 1.1rem;">✅ Password cracked! Well done!</span>`;
+        }
+        
+        playSound('success');
+        showToast('Password cracked manually!', 'success');
+        
+        // In competition mode, show gift screen
+        if (gameState.gameMode === 'compete') {
+            setTimeout(() => {
+                showGiftCollectionScreen();
+            }, 1500);
+        } else {
+            // Watch mode or other mode: show security analysis
+            setTimeout(() => {
+                showSecurityAnalysis();
+            }, 2000);
+        }
+    } else {
+        // Incorrect guess
+        gameState.bruteForceAttempts++;
+        updateBruteForceStats();
+        
+        // Clear input
+        inputEl.value = '';
+        
+        // Show feedback
+        if (feedbackEl) {
+            feedbackEl.innerHTML = `<span style="color: #ff4444;">❌ Incorrect! Keep trying or let the brute force continue...</span>`;
+            setTimeout(() => {
+                if (feedbackEl) feedbackEl.innerHTML = '';
+            }, 3000);
+        }
+        
+        playSound('error');
+        
+        // Add to attempts display
+        updateBruteForceDisplay(guess, false);
+    }
+}
+
+/**
+ * Calculate user score based on vulnerability level and performance
+ * Only scores if user found the password (userFoundPassword = true)
+ * Scores: Weak: 100-500, Medium: 500-1000, Strong: 1000-2000
+ * Bonus for speed (faster = higher score)
+ */
+function calculateUserScore() {
+    if (!gameState.userFoundPassword) {
+        gameState.score = 0;
+        return;
+    }
+    
+    // Base score by vulnerability level
+    let baseScore = 0;
+    if (gameState.vulnerabilityLevel === 'weak') {
+        baseScore = 100;
+    } else if (gameState.vulnerabilityLevel === 'medium') {
+        baseScore = 500;
+    } else {
+        baseScore = 1000;
+    }
+    
+    // Speed bonus: faster = higher bonus
+    // Maximum time bonus based on estimated crack time
+    const maxTimeBonus = baseScore * 0.5; // 50% of base score
+    const timeRatio = Math.max(0, 1 - (gameState.actualCrackTime / gameState.crackTime));
+    const timeBonus = timeRatio * maxTimeBonus;
+    
+    // Attempts penalty: fewer attempts = higher score
+    const maxAttempts = Math.pow(10, gameState.passwordLength);
+    const attemptsRatio = 1 - (gameState.bruteForceAttempts / maxAttempts);
+    const attemptsBonus = attemptsRatio * (baseScore * 0.3); // Up to 30% bonus
+    
+    // Competition mode bonus: beating brute force gets extra points
+    let competitionBonus = 0;
+    if (gameState.gameMode === 'compete' && gameState.userFoundPassword) {
+        competitionBonus = baseScore * 0.2; // 20% bonus for winning competition
+    }
+    
+    gameState.score = Math.floor(baseScore + timeBonus + attemptsBonus + competitionBonus);
+    
+    // Update score display
+    const scoreEl = document.getElementById('score');
+    if (scoreEl) {
+        scoreEl.textContent = gameState.score;
+    }
+}
+
+/**
+ * Show gift collection screen when user beats brute force in competition mode
+ */
+function showGiftCollectionScreen() {
+    showScreen('giftCollectionScreen');
+    
+    // Update gift screen with score and stats
+    const giftScoreEl = document.getElementById('giftScore');
+    if (giftScoreEl) {
+        giftScoreEl.textContent = gameState.score;
+    }
+    
+    const giftTimeEl = document.getElementById('giftTime');
+    if (giftTimeEl) {
+        giftTimeEl.textContent = `${gameState.actualCrackTime.toFixed(2)}s`;
+    }
+    
+    const giftLevelEl = document.getElementById('giftLevel');
+    if (giftLevelEl) {
+        giftLevelEl.textContent = gameState.vulnerabilityLevel.toUpperCase();
+        giftLevelEl.className = `vulnerability-badge ${gameState.vulnerabilityLevel}`;
+    }
+}
+
+/**
+ * Update brute force security info display
+ */
+function updateBruteForceSecurityInfo() {
+    const entropyEl = document.getElementById('bruteForceEntropy');
+    if (entropyEl) {
+        entropyEl.textContent = `${gameState.passwordEntropy} bits`;
+    }
+    
+    const vulnerabilityEl = document.getElementById('bruteForceVulnerability');
+    if (vulnerabilityEl) {
+        vulnerabilityEl.textContent = gameState.vulnerabilityLevel.toUpperCase();
+        vulnerabilityEl.className = `vulnerability-badge ${gameState.vulnerabilityLevel}`;
+    }
+    
+    const crackTimeEl = document.getElementById('bruteForceCrackTime');
+    if (crackTimeEl) {
+        crackTimeEl.textContent = formatCrackTime(gameState.crackTime);
+    }
+    
+    // Update vulnerability meter
+    updateVulnerabilityMeter();
+}
+
+/**
+ * Update vulnerability meter visual display
+ */
+function updateVulnerabilityMeter() {
+    const meterBar = document.getElementById('vulnerabilityMeterBar');
+    const meterValue = document.getElementById('vulnerabilityMeterValue');
+    
+    if (!meterBar || !meterValue) return;
+    
+    // Calculate percentage based on vulnerability level and entropy
+    // Weak: 0-33%, Medium: 34-66%, Strong: 67-100%
+    // Scale improves as vulnerability level increases (security increases)
+    let percentage;
+    const entropy = gameState.passwordEntropy;
+    
+    if (gameState.vulnerabilityLevel === 'weak') {
+        // Weak: 0-13 bits -> 0-33% (low security)
+        percentage = Math.min(33, (entropy / 13) * 33);
+        meterBar.style.backgroundColor = '#ff4444'; // Red - high vulnerability
+        meterBar.style.boxShadow = '0 0 10px rgba(255, 68, 68, 0.5)';
+    } else if (gameState.vulnerabilityLevel === 'medium') {
+        // Medium: 13-17 bits -> 34-66% (medium security)
+        const mediumRange = Math.max(0, entropy - 13);
+        const mediumMax = 17 - 13; // 4 bits range
+        percentage = 34 + Math.min(32, (mediumRange / mediumMax) * 32);
+        meterBar.style.backgroundColor = '#ffaa00'; // Orange - medium vulnerability
+        meterBar.style.boxShadow = '0 0 10px rgba(255, 170, 0, 0.5)';
+    } else {
+        // Strong: 17+ bits -> 67-100% (high security)
+        const strongRange = Math.max(0, entropy - 17);
+        const strongMax = 20 - 17; // 3 bits range (up to 20 bits max for numeric)
+        percentage = 67 + Math.min(33, (strongRange / strongMax) * 33);
+        meterBar.style.backgroundColor = '#44ff44'; // Green - low vulnerability (strong password)
+        meterBar.style.boxShadow = '0 0 10px rgba(68, 255, 68, 0.5)';
+    }
+    
+    // Ensure percentage is within bounds
+    percentage = Math.max(0, Math.min(100, percentage));
+    
+    meterBar.style.width = `${percentage}%`;
+    meterValue.textContent = `${percentage.toFixed(1)}%`;
+}
+
+/**
+ * Start brute force attack
+ */
+function startBruteForceAttack() {
+    if (gameState.isBruteForceRunning) return;
+    
+    gameState.isBruteForceRunning = true;
+    gameState.startTime = Date.now();
+    gameState.bruteForceAttempts = 0;
+    gameState.currentGuess = '0'.repeat(gameState.passwordLength);
+    
+    // Hide start button, show pause button
+    const startBtn = document.getElementById('startBruteForceBtn');
+    if (startBtn) startBtn.style.display = 'none';
+    
+    const pauseBtn = document.getElementById('pauseBruteForceBtn');
+    if (pauseBtn) {
+        pauseBtn.style.display = 'block';
+        pauseBtn.textContent = 'PAUSE';
+        // Event listener handles the click (don't set onclick to avoid conflicts)
+    }
+    
+    // Update attack speed display
+    const attackSpeedEl = document.getElementById('bruteForceAttackSpeed');
+    if (attackSpeedEl) {
+        attackSpeedEl.textContent = `${gameState.attackSpeed} attempts/sec`;
+    }
+    
+    // Reset pause state when starting
+    gameState.isPaused = false;
+    gameState.pauseStartTime = null;
+    gameState.totalPausedTime = 0;
+    
+    // Start brute force interval
+    const intervalMs = Math.max(1, 1000 / gameState.attackSpeed); // Ensure minimum 1ms
+    gameState.bruteForceInterval = setInterval(() => {
+        performBruteForceAttempt();
+    }, intervalMs);
+    
+    // Start stats update interval (updates even when paused)
+    if (gameState.statsUpdateInterval) {
+        clearInterval(gameState.statsUpdateInterval);
+    }
+    gameState.statsUpdateInterval = setInterval(() => {
+        updateBruteForceStats();
+    }, 100); // Update stats every 100ms for smooth display
+}
+
+/**
+ * Perform a single brute force attempt
+ */
+function performBruteForceAttempt() {
+    if (!gameState.isBruteForceRunning || gameState.isPaused) return;
+    
+    // In competition mode, check if user already found the password
+    if (gameState.gameMode === 'compete' && gameState.userFoundPassword) {
+        stopBruteForceAttack();
+        return; // User won, don't continue brute force
+    }
+    
+    // Check if we've exhausted password space
+    const maxValue = Math.pow(10, gameState.passwordLength);
+    if (gameState.bruteForceAttempts >= maxValue) {
+        stopBruteForceAttack();
+        showToast('Password space exhausted. Password not found.', 'error');
+        return;
+    }
+    
+    // Convert attempt number to numeric string with proper padding
+    // Try passwords sequentially: 0000, 0001, 0002, ..., 9999
+    const guess = gameState.bruteForceAttempts.toString().padStart(gameState.passwordLength, '0');
+    
+    gameState.currentGuess = guess;
+    gameState.attempts = gameState.bruteForceAttempts + 1; // 1-indexed for display
+    
+    // Update stats (always update)
+    updateBruteForceStats();
+    
+    // Update display periodically to avoid performance issues
+    // For fast attacks, only update display every N attempts
+    const updateFrequency = Math.max(1, Math.floor(gameState.attackSpeed / 50));
+    const shouldUpdateDisplay = gameState.bruteForceAttempts % updateFrequency === 0 || 
+                                 gameState.bruteForceAttempts < 10; // Always show first 10
+    
+    if (shouldUpdateDisplay) {
+        updateBruteForceDisplay(guess, false);
+    }
+    
+    // Always update progress
+    updateBruteForceProgress();
+    
+    // Check if password is cracked
+    if (guess === gameState.password) {
+        // Brute force found the password
+        // In competition mode, if user hasn't found it yet, brute force wins (no score)
+        if (gameState.gameMode === 'compete' && !gameState.userFoundPassword) {
+            // Brute force won - no score for user
+            gameState.userFoundPassword = false;
+            gameState.score = 0; // No score if brute force wins
+        }
+        
+        // Calculate final elapsed time (accounting for pauses)
+        if (gameState.startTime) {
+            let elapsed = (Date.now() - gameState.startTime) / 1000;
+            if (gameState.totalPausedTime) {
+                elapsed -= gameState.totalPausedTime;
+            }
+            if (gameState.isPaused && gameState.pauseStartTime) {
+                elapsed -= (Date.now() - gameState.pauseStartTime) / 1000;
+            }
+            gameState.actualCrackTime = Math.max(0, elapsed);
+        }
+        
+        stopBruteForceAttack();
+        gameState.filesRetrieved = true; // Files are retrieved when password is cracked
+        
+        // Show final successful attempt
+        updateBruteForceDisplay(guess, true);
+        
+        playSound('success');
+        showToast('Password cracked!', 'success');
+        
+        // Show security analysis after a brief delay
+        setTimeout(() => {
+            showSecurityAnalysis();
+        }, 2000);
+        return;
+    }
+    
+    // Increment attempts for next iteration
+    gameState.bruteForceAttempts++;
+}
+
+/**
+ * Update brute force stats (attempts, elapsed time)
+ */
+function updateBruteForceStats() {
+    // Update attempts counter
+    const attemptsEl = document.getElementById('bruteForceAttemptsCount');
+    if (attemptsEl) {
+        attemptsEl.textContent = gameState.bruteForceAttempts;
+    }
+    
+    // Update elapsed time (accounting for pauses)
+    if (gameState.startTime) {
+        let elapsedTime = (Date.now() - gameState.startTime) / 1000;
+        
+        // Subtract total paused time
+        if (gameState.totalPausedTime) {
+            elapsedTime -= gameState.totalPausedTime;
+        }
+        
+        // If currently paused, subtract current pause duration
+        if (gameState.isPaused && gameState.pauseStartTime) {
+            const currentPauseDuration = (Date.now() - gameState.pauseStartTime) / 1000;
+            elapsedTime -= currentPauseDuration;
+        }
+        
+        gameState.actualCrackTime = Math.max(0, elapsedTime);
+        
+        const elapsedTimeEl = document.getElementById('bruteForceElapsedTime');
+        if (elapsedTimeEl) {
+            elapsedTimeEl.textContent = `${gameState.actualCrackTime.toFixed(2)}s`;
+        }
+    }
+    
+    // Update current guess display
+    const currentGuessEl = document.getElementById('currentGuessDisplay');
+    if (currentGuessEl) {
+        currentGuessEl.textContent = gameState.currentGuess;
+    }
+}
+
+/**
+ * Update brute force attempt display
+ */
+function updateBruteForceDisplay(guess, isCorrect = false) {
+    const attemptsList = document.getElementById('bruteForceAttemptsList');
+    if (!attemptsList) return;
+    
+    // Remove "no attempts" message if present
+    const noAttemptsMsg = attemptsList.querySelector('.no-attempts');
+    if (noAttemptsMsg) {
+        noAttemptsMsg.remove();
+    }
+    
+    // Create attempt item
+    const attemptItem = document.createElement('div');
+    attemptItem.className = 'brute-force-attempt';
+    
+    if (isCorrect || guess === gameState.password) {
+        attemptItem.classList.add('correct');
+        isCorrect = true;
+    }
+    
+    const attemptNumber = gameState.attempts || (gameState.bruteForceAttempts + 1);
+    attemptItem.innerHTML = `
+        <span class="attempt-number">Attempt ${attemptNumber}:</span>
+        <span class="attempt-guess">${guess}</span>
+        <span class="attempt-status">${isCorrect ? '✅ CRACKED!' : '❌'}</span>
+    `;
+    
+    // Add to list (keep last 20 visible for better visibility)
+    attemptsList.appendChild(attemptItem);
+    
+    // Keep only last 20 attempts visible
+    while (attemptsList.children.length > 20) {
+        attemptsList.removeChild(attemptsList.firstChild);
+    }
+    
+    // Scroll to bottom
+    attemptsList.scrollTop = attemptsList.scrollHeight;
+}
+
+/**
+ * Update brute force progress bar
+ */
+function updateBruteForceProgress() {
+    const progressBar = document.getElementById('bruteForceProgressBar');
+    if (!progressBar) return;
+    
+    const maxValue = Math.pow(10, gameState.passwordLength);
+    const progress = Math.min(100, (gameState.bruteForceAttempts / maxValue) * 100);
+    
+    progressBar.style.width = `${progress}%`;
+    
+    // Update progress text
+    const progressText = document.getElementById('bruteForceProgressText');
+    if (progressText) {
+        progressText.textContent = `${progress.toFixed(4)}%`;
+    }
+}
+
+/**
+ * Stop brute force attack (completely stop, not pause)
+ */
+function stopBruteForceAttack() {
+    gameState.isBruteForceRunning = false;
+    gameState.isPaused = false;
+    
+    if (gameState.bruteForceInterval) {
+        clearInterval(gameState.bruteForceInterval);
+        gameState.bruteForceInterval = null;
+    }
+    
+    // Stop stats update interval
+    if (gameState.statsUpdateInterval) {
+        clearInterval(gameState.statsUpdateInterval);
+        gameState.statsUpdateInterval = null;
+    }
+    
+    // Show start button, hide pause button
+    const startBtn = document.getElementById('startBruteForceBtn');
+    if (startBtn) startBtn.style.display = 'block';
+    
+    const pauseBtn = document.getElementById('pauseBruteForceBtn');
+    if (pauseBtn) {
+        pauseBtn.style.display = 'none';
+        pauseBtn.textContent = 'PAUSE';
+    }
+}
+
+/**
+ * Pause brute force attack
+ */
+function pauseBruteForceAttack() {
+    if (!gameState.isBruteForceRunning || gameState.isPaused) {
+        return;
+    }
+    
+    // Mark as paused
+    gameState.isPaused = true;
+    gameState.isBruteForceRunning = false;
+    
+    // Record when pause started
+    gameState.pauseStartTime = Date.now();
+    
+    // Clear the interval to stop brute force attempts
+    if (gameState.bruteForceInterval) {
+        clearInterval(gameState.bruteForceInterval);
+        gameState.bruteForceInterval = null;
+    }
+    
+    // Note: Keep statsUpdateInterval running so elapsed time display updates correctly while paused
+    
+    // Update button to show RESUME
+    const pauseBtn = document.getElementById('pauseBruteForceBtn');
+    if (pauseBtn) {
+        pauseBtn.textContent = 'RESUME';
+    }
+    
+    playSound('select');
+    showToast('Brute force attack paused', 'info');
+}
+
+/**
+ * Resume brute force attack
+ */
+function resumeBruteForceAttack() {
+    if (gameState.isBruteForceRunning || !gameState.isPaused) {
+        return;
+    }
+    
+    // Calculate how long we were paused
+    if (gameState.pauseStartTime) {
+        const pauseDuration = (Date.now() - gameState.pauseStartTime) / 1000; // in seconds
+        gameState.totalPausedTime += pauseDuration;
+        gameState.pauseStartTime = null;
+    }
+    
+    // Mark as running again
+    gameState.isPaused = false;
+    gameState.isBruteForceRunning = true;
+    
+    // Update button to show PAUSE
+    const pauseBtn = document.getElementById('pauseBruteForceBtn');
+    if (pauseBtn) {
+        pauseBtn.textContent = 'PAUSE';
+    }
+    
+    // Resume interval with correct timing
+    const intervalMs = Math.max(1, 1000 / gameState.attackSpeed);
+    gameState.bruteForceInterval = setInterval(() => {
+        performBruteForceAttempt();
+    }, intervalMs);
+    
+    playSound('select');
+    showToast('Brute force attack resumed', 'info');
+}
+
+// Make brute force functions globally accessible (after function definitions)
+if (typeof window !== 'undefined') {
+    window.startBruteForceAttack = startBruteForceAttack;
+    window.pauseBruteForceAttack = pauseBruteForceAttack;
+}
+
+/**
+ * Show security analysis screen after password is cracked
+ */
+function showSecurityAnalysis() {
+    showScreen('securityAnalysisScreen');
+    
+    // Update analysis display
+    const passwordEl = document.getElementById('analysisPassword');
+    if (passwordEl) {
+        passwordEl.textContent = gameState.password;
+    }
+    
+    const entropyEl = document.getElementById('analysisEntropy');
+    if (entropyEl) {
+        entropyEl.textContent = `${gameState.passwordEntropy} bits`;
+    }
+    
+    const vulnerabilityEl = document.getElementById('analysisVulnerability');
+    if (vulnerabilityEl) {
+        vulnerabilityEl.textContent = gameState.vulnerabilityLevel.toUpperCase();
+        vulnerabilityEl.className = `vulnerability-badge ${gameState.vulnerabilityLevel}`;
+    }
+    
+    const crackTimeEl = document.getElementById('analysisCrackTime');
+    if (crackTimeEl) {
+        const estimatedTime = formatCrackTime(gameState.crackTime);
+        const actualTime = formatCrackTime(gameState.actualCrackTime);
+        crackTimeEl.innerHTML = `
+            <div>Estimated: ${estimatedTime}</div>
+            <div>Actual: ${actualTime}</div>
+            <div>Attempts: ${gameState.bruteForceAttempts}</div>
+        `;
+    }
+    
+    // Display weaknesses
+    const weaknessesEl = document.getElementById('analysisWeaknesses');
+    if (weaknessesEl) {
+        if (gameState.weaknesses.length > 0) {
+            weaknessesEl.innerHTML = '<ul>' + 
+                gameState.weaknesses.map(w => `<li>${w}</li>`).join('') + 
+                '</ul>';
+        } else {
+            weaknessesEl.textContent = 'No significant weaknesses detected.';
+        }
+    }
+    
+    // Update vulnerability meter
+    const analysisMeterBar = document.getElementById('analysisVulnerabilityMeterBar');
+    const analysisMeterValue = document.getElementById('analysisVulnerabilityMeterValue');
+    if (analysisMeterBar && analysisMeterValue) {
+        const maxEntropy = 60;
+        const percentage = Math.min(100, (gameState.passwordEntropy / maxEntropy) * 100);
+        analysisMeterBar.style.width = `${percentage}%`;
+        
+        if (gameState.vulnerabilityLevel === 'weak') {
+            analysisMeterBar.style.backgroundColor = '#ff4444';
+        } else if (gameState.vulnerabilityLevel === 'medium') {
+            analysisMeterBar.style.backgroundColor = '#ffaa00';
+        } else {
+            analysisMeterBar.style.backgroundColor = '#44ff44';
+        }
+        
+        analysisMeterValue.textContent = `${percentage.toFixed(1)}%`;
+    }
+    
+    // Show file retrieval status
+    const filesRetrievedEl = document.getElementById('analysisFilesRetrieved');
+    if (filesRetrievedEl) {
+        filesRetrievedEl.innerHTML = gameState.filesRetrieved ? 
+            '✅ Files Retrieved Successfully' : 
+            '❌ Files Not Retrieved';
+    }
+    
+    // Generate encrypted files if not already generated
+    if (gameState.filesRetrieved && gameState.encryptedFiles.length === 0) {
+        generateEncryptedFiles();
+    }
+    
+    // Show files list
+    const filesListEl = document.getElementById('analysisFilesList');
+    if (filesListEl) {
+        if (gameState.encryptedFiles.length > 0) {
+            filesListEl.innerHTML = gameState.encryptedFiles.map(file => 
+                `<li>${file.name}</li>`
+            ).join('');
+        } else {
+            // Default files list if no files generated yet
+            filesListEl.innerHTML = '<li>confidential.txt</li><li>passwords.db</li><li>financial.xlsx</li>';
+        }
+    }
+    
+    // Show continue button to go to decryption (always show it)
+    const continueBtn = document.getElementById('continueToDecryptionBtn');
+    if (continueBtn) {
+        continueBtn.style.display = 'block';
+    }
+}
+
+/**
+ * Show decryption security analysis screen
+ */
+function showDecryptionAnalysis() {
+    showScreen('decryptionAnalysisScreen');
+    
+    // Calculate decryption key entropy
+    const decryptionEntropy = calculateEntropy(gameState.decryptionKey);
+    const decryptionWeaknesses = analyzeWeaknesses(gameState.decryptionKey);
+    
+    // Update analysis display
+    const keyEl = document.getElementById('decryptionAnalysisKey');
+    if (keyEl) {
+        keyEl.textContent = gameState.decryptionKey;
+    }
+    
+    const entropyEl = document.getElementById('decryptionAnalysisEntropy');
+    if (entropyEl) {
+        entropyEl.textContent = `${decryptionEntropy} bits`;
+    }
+    
+    const lengthEl = document.getElementById('decryptionAnalysisLength');
+    if (lengthEl) {
+        lengthEl.textContent = `${gameState.decryptionKey.length} digits`;
+    }
+    
+    const weaknessesEl = document.getElementById('decryptionAnalysisWeaknesses');
+    if (weaknessesEl) {
+        if (decryptionWeaknesses.length > 0) {
+            weaknessesEl.innerHTML = '<ul>' + 
+                decryptionWeaknesses.map(w => `<li>${w}</li>`).join('') + 
+                '</ul>';
+        } else {
+            weaknessesEl.textContent = 'No significant weaknesses detected.';
+        }
+    }
+    
+    // Explain encryption vulnerability
+    const explanationEl = document.getElementById('decryptionAnalysisExplanation');
+    if (explanationEl) {
+        explanationEl.innerHTML = `
+            <p><strong>Pattern-based encryption is vulnerable!</strong></p>
+            <p>This encryption uses a simple pattern that can be easily detected and cracked.</p>
+            <p>Strong encryption should use:</p>
+            <ul>
+                <li>Cryptographically secure random keys</li>
+                <li>Advanced encryption algorithms (AES-256, etc.)</li>
+                <li>No predictable patterns</li>
+                <li>High entropy keys (80+ bits)</li>
+            </ul>
+        `;
+    }
+    
+    // Show continue button to go to final summary (always show it)
+    const continueBtn = document.getElementById('continueToSummaryBtn');
+    if (continueBtn) {
+        continueBtn.style.display = 'block';
+    }
+}
+
+/**
+ * Show final summary screen
+ */
+function showFinalSummary() {
+    showScreen('finalSummaryScreen');
+    
+    // Calculate total vulnerabilities
+    const totalVulnerabilities = gameState.weaknesses.length + 
+        (gameState.decryptionKey ? analyzeWeaknesses(gameState.decryptionKey).length : 0);
+    
+    // Update summary display
+    const vulnerabilitiesEl = document.getElementById('summaryVulnerabilities');
+    if (vulnerabilitiesEl) {
+        vulnerabilitiesEl.textContent = totalVulnerabilities;
+    }
+    
+    // Display password analysis
+    const passwordAnalysisEl = document.getElementById('summaryPasswordAnalysis');
+    if (passwordAnalysisEl) {
+        passwordAnalysisEl.innerHTML = `
+            <div class="summary-item">
+                <strong>Password:</strong> ${gameState.password}
+            </div>
+            <div class="summary-item">
+                <strong>Entropy:</strong> ${gameState.passwordEntropy} bits
+            </div>
+            <div class="summary-item">
+                <strong>Vulnerability:</strong> ${gameState.vulnerabilityLevel.toUpperCase()}
+            </div>
+            <div class="summary-item">
+                <strong>Crack Time:</strong> ${formatCrackTime(gameState.actualCrackTime)}
+            </div>
+            <div class="summary-item">
+                <strong>Weaknesses:</strong> ${gameState.weaknesses.length}
+            </div>
+        `;
+    }
+    
+    // Display decryption analysis
+    if (gameState.decryptionKey) {
+        const decryptionAnalysisEl = document.getElementById('summaryDecryptionAnalysis');
+        if (decryptionAnalysisEl) {
+            const decryptionEntropy = calculateEntropy(gameState.decryptionKey);
+            const decryptionWeaknesses = analyzeWeaknesses(gameState.decryptionKey);
+            decryptionAnalysisEl.innerHTML = `
+                <div class="summary-item">
+                    <strong>Decryption Key:</strong> ${gameState.decryptionKey}
+                </div>
+                <div class="summary-item">
+                    <strong>Entropy:</strong> ${decryptionEntropy} bits
+                </div>
+                <div class="summary-item">
+                    <strong>Weaknesses:</strong> ${decryptionWeaknesses.length}
+                </div>
+            `;
+        }
+    }
+    
+    // Display security recommendations
+    const recommendationsEl = document.getElementById('summaryRecommendations');
+    if (recommendationsEl) {
+        const recommendations = [];
+        
+        if (gameState.passwordEntropy < 13) {
+            recommendations.push('Use longer passwords (5-6 digits)');
+        } else if (gameState.passwordEntropy < 17) {
+            recommendations.push('Use passwords with all different digits for better security');
+        }
+        if (gameState.weaknesses.length > 0) {
+            recommendations.push('Avoid sequential patterns and repeated digits');
+        }
+        if (gameState.decryptionKey) {
+            const decryptionEntropy = calculateEntropy(gameState.decryptionKey);
+            if (decryptionEntropy < 40) {
+                recommendations.push('Use stronger encryption keys with higher entropy');
+            }
+        }
+        recommendations.push('Use alphanumeric passwords with special characters');
+        recommendations.push('Enable two-factor authentication');
+        recommendations.push('Use password managers for secure storage');
+        
+        recommendationsEl.innerHTML = '<ul>' + 
+            recommendations.map(r => `<li>${r}</li>`).join('') + 
+            '</ul>';
+    }
+    
+    // Calculate final score - only if user found the password
+    // Score is already calculated in calculateUserScore() if user found password
+    // If user didn't find password, score is 0
+    if (!gameState.userFoundPassword && gameState.gameMode === 'compete') {
+        gameState.score = 0;
+    }
+    
+    const scoreEl = document.getElementById('summaryScore');
+    if (scoreEl) {
+        scoreEl.textContent = gameState.score;
+    }
+    
+    // Hide leaderboard button and name input if no score (user didn't find password)
+    const viewLeaderboardBtn = document.getElementById('viewLeaderboardBtn');
+    const saveScoreBtnSummary = document.getElementById('saveScoreBtnSummary');
+    const nameInputSection = document.querySelector('.name-input-section');
+    
+    if (gameState.score === 0 || !gameState.userFoundPassword) {
+        if (viewLeaderboardBtn) viewLeaderboardBtn.style.display = 'none';
+        if (saveScoreBtnSummary) saveScoreBtnSummary.style.display = 'none';
+        if (nameInputSection) nameInputSection.style.display = 'none';
+    } else {
+        if (viewLeaderboardBtn) viewLeaderboardBtn.style.display = 'block';
+        if (saveScoreBtnSummary) saveScoreBtnSummary.style.display = 'block';
+        if (nameInputSection) nameInputSection.style.display = 'block';
     }
 }
 
@@ -615,15 +1970,40 @@ function updateCreatorDashboard() {
     
     if (!passcodeList) return;
     
-    // Count by difficulty
-    const easy = allGeneratedPasscodes.filter(p => p.difficulty === 'easy').length;
-    const medium = allGeneratedPasscodes.filter(p => p.difficulty === 'medium').length;
-    const hard = allGeneratedPasscodes.filter(p => p.difficulty === 'hard').length;
+    // Count by vulnerabilityLevel (weak/medium/strong)
+    // Also handle old format with difficulty (easy/medium/hard)
+    let weak = 0, medium = 0, strong = 0;
+    
+    allGeneratedPasscodes.forEach(p => {
+        // Calculate vulnerability level if not present
+        let vulnerabilityLevel = p.vulnerabilityLevel;
+        
+        if (!vulnerabilityLevel) {
+            // Try to get from difficulty (old format)
+            if (p.difficulty) {
+                vulnerabilityLevel = p.difficulty === 'easy' ? 'weak' : 
+                                    p.difficulty === 'medium' ? 'medium' : 
+                                    p.difficulty === 'hard' ? 'strong' : 'weak';
+            } else {
+                // Calculate from entropy
+                const entropy = p.entropy !== undefined ? p.entropy : 
+                               (p.password ? calculateEntropy(p.password) : 0);
+                vulnerabilityLevel = entropy < 20 ? 'weak' : 
+                                    entropy <= 40 ? 'medium' : 'strong';
+            }
+        }
+        
+        // Count by vulnerability level
+        if (vulnerabilityLevel === 'weak') weak++;
+        else if (vulnerabilityLevel === 'medium') medium++;
+        else if (vulnerabilityLevel === 'strong') strong++;
+    });
     
     if (totalGames) totalGames.textContent = allGeneratedPasscodes.length;
-    if (easyCount) easyCount.textContent = easy;
+    // Map weak/medium/strong to easy/medium/hard for display
+    if (easyCount) easyCount.textContent = weak;
     if (mediumCount) mediumCount.textContent = medium;
-    if (hardCount) hardCount.textContent = hard;
+    if (hardCount) hardCount.textContent = strong;
     
     // Display passcodes
     if (allGeneratedPasscodes.length === 0) {
@@ -638,13 +2018,32 @@ function updateCreatorDashboard() {
             const item = document.createElement('div');
             item.className = 'passcode-item';
             const date = new Date(entry.timestamp || entry.time || Date.now());
+            // Handle both old format (difficulty) and new format (vulnerabilityLevel)
+            const difficulty = entry.difficulty || entry.vulnerabilityLevel || 'weak';
+            const device = entry.device || 'laptop';
+            const entropy = entry.entropy !== undefined ? entry.entropy : (entry.passwordLength ? calculateEntropy(entry.password) : 0);
+            const vulnerabilityLevel = entry.vulnerabilityLevel || (entropy < 20 ? 'weak' : entropy <= 40 ? 'medium' : 'strong');
+            
+            // Get decryption key pattern if available
+            const decryptionKey = entry.decryptionKey || '';
+            const decryptionKeyDisplay = decryptionKey ? 
+                `<div class="passcode-decryption-key">
+                    <span class="decryption-label">🔑 Decryption Key:</span>
+                    <span class="decryption-value">${decryptionKey}</span>
+                </div>` : '';
+            
             item.innerHTML = `
                 <div class="passcode-header">
                     <span class="passcode-number">#${sorted.length - index}</span>
-                    <span class="passcode-difficulty ${entry.difficulty}">${entry.difficulty.toUpperCase()}</span>
-                    <span class="passcode-device">${entry.device === 'laptop' ? '💻' : '📱'}</span>
+                    <span class="passcode-difficulty ${vulnerabilityLevel}">${vulnerabilityLevel.toUpperCase()}</span>
+                    <span class="passcode-device">${device === 'laptop' ? '💻' : '📱'}</span>
                 </div>
                 <div class="passcode-value">${entry.password}</div>
+                <div class="passcode-info">
+                    <span>Length: ${entry.passwordLength || entry.password.length} digits</span>
+                    <span>Entropy: ${entropy.toFixed(2)} bits</span>
+                </div>
+                ${decryptionKeyDisplay}
                 <div class="passcode-time">${date.toLocaleString()}</div>
             `;
             passcodeList.appendChild(item);
@@ -1239,29 +2638,10 @@ document.addEventListener('keydown', (e) => {
         return;
     }
     
-    // Only handle arrow keys and Enter for brute force game
+    // Brute force game doesn't use arrow keys for grid navigation anymore
+    // Only handle pause (P or Escape) for brute force game
     if (gameState.currentScreen === 'bruteForceGame' && !isPaused) {
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-            e.preventDefault();
-            
-            // If this is a new key, start movement
-            if (currentArrowKey !== e.key) {
-                currentArrowKey = e.key;
-                keys[key] = true;
-                handleMovement(); // Immediate first move
-                
-                // Start repeating after initial delay
-                clearInterval(arrowKeyRepeatInterval);
-                arrowKeyRepeatInterval = setInterval(() => {
-                    if (keys[key]) {
-                        handleMovement();
-                    }
-                }, 150); // Smooth repeat rate
-            }
-        } else if (e.key === 'Enter') {
-            e.preventDefault();
-            handleSelection();
-        }
+        // Pause functionality handled separately
     } else if (gameState.currentScreen === 'fileRetrieval') {
         // Arrow keys and WASD for sensor movement
         if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
@@ -1312,56 +2692,17 @@ document.addEventListener('keyup', (e) => {
 });
 
 function handleMovement() {
-    if (gameState.currentScreen === 'bruteForceGame') {
-        let moved = false;
-        
-        // Check arrow keys - process in priority order
-        if (keys['arrowup'] && gameState.selectedCell.row > 0) {
-            gameState.selectedCell.row--;
-            moved = true;
-        } else if (keys['arrowdown'] && gameState.selectedCell.row < gameState.gridSize - 1) {
-            gameState.selectedCell.row++;
-            moved = true;
-        } else if (keys['arrowleft'] && gameState.selectedCell.col > 0) {
-            gameState.selectedCell.col--;
-            moved = true;
-        } else if (keys['arrowright'] && gameState.selectedCell.col < gameState.gridSize - 1) {
-            gameState.selectedCell.col++;
-            moved = true;
-        }
-        
-        if (moved) {
-            updateSelectedCell();
-            playSound('select');
-        }
-    } else if (gameState.currentScreen === 'fileRetrieval') {
+    // Old grid puzzle code removed - brute force game doesn't use grid movement
+    // This function is kept for compatibility but does nothing for brute force game
+    if (gameState.currentScreen === 'fileRetrieval') {
         handleSensorMovement();
     }
 }
 
 function handleSelection() {
-    if (gameState.currentScreen === 'bruteForceGame') {
-        // Check if attempts exceeded
-        if (gameState.attempts >= gameState.maxAttempts) {
-            showAlternativeBreach();
-            return;
-        }
-        
-        const selectedChar = gameState.grid[gameState.selectedCell.row][gameState.selectedCell.col];
-        
-        if (gameState.currentPassword.length < gameState.passwordLength) {
-            gameState.currentPassword.push(selectedChar);
-            updatePasswordSlots();
-            playSound('typing');
-            
-            // Check if password is complete - wait a moment to show the character
-            if (gameState.currentPassword.length === gameState.passwordLength) {
-                setTimeout(() => {
-                    checkPassword();
-                }, 100); // Small delay to show the last character
-            }
-        }
-    } else if (gameState.currentScreen === 'fileRetrieval') {
+    // Old grid puzzle code removed - brute force game doesn't use grid selection
+    // This function is kept for compatibility but does nothing for brute force game
+    if (gameState.currentScreen === 'fileRetrieval') {
         handleSensorRetrieval();
     }
 }
@@ -1371,69 +2712,8 @@ function handleSensorRetrieval() {
     // This function exists for compatibility
 }
 
-function checkPassword() {
-    gameState.attempts++;
-    updateAttemptsDisplay();
-    
-    const userPassword = gameState.currentPassword.join('');
-    
-    if (userPassword === gameState.password) {
-        // Correct password
-        playSound('success');
-        gameState.score += (gameState.timeRemaining * 10);
-        const scoreEl = document.getElementById('score');
-        if (scoreEl) scoreEl.textContent = gameState.score;
-        
-        // Mark correct cells
-        document.querySelectorAll('.grid-cell').forEach(cell => {
-            const row = parseInt(cell.dataset.row);
-            const col = parseInt(cell.dataset.col);
-            if (row === gameState.selectedCell.row && col === gameState.selectedCell.col) {
-                cell.classList.add('correct');
-            }
-        });
-        
-        setTimeout(() => {
-            stopTimer();
-            showScreen('fileRetrieval');
-            initializeFileRetrieval();
-        }, 1000);
-    } else {
-        // Incorrect password
-        playSound('error');
-        
-        // Add screen shake on error
-        if (typeof screenShake === 'function') {
-            screenShake(3, 200);
-        }
-        
-        // Check if player is struggling and show hint notification
-        checkPlayerStruggling();
-        
-        // Check if attempts exceeded
-        if (gameState.attempts >= gameState.maxAttempts) {
-            setTimeout(() => {
-                showAlternativeBreach();
-            }, 500);
-            return;
-        }
-        
-        gameState.currentPassword = [];
-        updatePasswordSlots();
-        
-        // Mark incorrect cells
-        document.querySelectorAll('.grid-cell').forEach(cell => {
-            const row = parseInt(cell.dataset.row);
-            const col = parseInt(cell.dataset.col);
-            if (row === gameState.selectedCell.row && col === gameState.selectedCell.col) {
-                cell.classList.add('incorrect');
-                setTimeout(() => {
-                    cell.classList.remove('incorrect');
-                }, 500);
-            }
-        });
-    }
-}
+// checkPassword() function removed - no longer needed for brute force game
+// Password checking is handled by performBruteForceAttempt() and tryManualPassword()
 
 // Timer
 function startTimer() {
@@ -1512,106 +2792,8 @@ function gameOver() {
     gameState.gameStarted = false;
 }
 
-// Alternative Breach Method
-function showAlternativeBreach() {
-    stopTimer();
-    playSound('error');
-    showScreen('alternativeBreachScreen');
-    initializeAlternativeBreach();
-    gameState.gameStarted = false;
-}
-
-function initializeAlternativeBreach() {
-    // This is a different hacking method - bypassing password lock
-    // User needs to complete a sequence or pattern
-    const breachContainer = document.getElementById('breachSequence');
-    if (breachContainer) {
-        breachContainer.innerHTML = '';
-        
-        // Create a sequence pattern game
-        const sequence = [];
-        const colors = ['red', 'blue', 'green', 'yellow'];
-        for (let i = 0; i < 6; i++) {
-            sequence.push(colors[Math.floor(Math.random() * colors.length)]);
-        }
-        
-        gameState.breachSequence = sequence;
-        gameState.breachInput = [];
-        
-        sequence.forEach((color, index) => {
-            const btn = document.createElement('button');
-            btn.className = `breach-btn ${color}`;
-            btn.dataset.color = color;
-            btn.dataset.index = index;
-            btn.style.display = 'none'; // Hide initially, show in sequence
-            breachContainer.appendChild(btn);
-        });
-        
-        // Show sequence with delay
-        showBreachSequence(0);
-    }
-}
-
-function showBreachSequence(index) {
-    const buttons = document.querySelectorAll('.breach-btn');
-    if (index < buttons.length) {
-        buttons[index].style.display = 'block';
-        buttons[index].classList.add('flash');
-        setTimeout(() => {
-            buttons[index].classList.remove('flash');
-            showBreachSequence(index + 1);
-        }, 500);
-    } else {
-        // All shown, now enable input
-        setTimeout(() => {
-            buttons.forEach(btn => {
-                btn.style.display = 'block';
-                btn.style.opacity = '0.5';
-                btn.addEventListener('click', handleBreachInput);
-            });
-            const instructionsEl = document.getElementById('breachInstructions');
-            if (instructionsEl) instructionsEl.textContent = 'Click the buttons in the same sequence!';
-        }, 1000);
-    }
-}
-
-function handleBreachInput(e) {
-    const color = e.target.dataset.color;
-    gameState.breachInput.push(color);
-    
-    // Visual feedback
-    e.target.style.opacity = '1';
-    e.target.classList.add('pressed');
-    setTimeout(() => {
-        e.target.style.opacity = '0.5';
-        e.target.classList.remove('pressed');
-    }, 200);
-    
-    // Check if sequence matches
-    if (gameState.breachInput.length === gameState.breachSequence.length) {
-        const correct = gameState.breachSequence.every((c, i) => c === gameState.breachInput[i]);
-        if (correct) {
-            playSound('success');
-            gameState.score += 300; // Bonus for alternative breach
-            setTimeout(() => {
-                showScreen('fileRetrieval');
-                initializeFileRetrieval();
-            }, 1000);
-        } else {
-            playSound('error');
-            // Add screen shake on error
-            if (typeof screenShake === 'function') {
-                screenShake(5, 300);
-            }
-            gameState.breachInput = [];
-            document.querySelectorAll('.breach-btn').forEach(btn => {
-                btn.style.opacity = '0.5';
-            });
-            const instructionsEl = document.getElementById('breachInstructions');
-            if (instructionsEl) instructionsEl.textContent = 'Wrong sequence! Try again.';
-        }
-    }
-}
+// Alternative Breach Method (color sequence) - REMOVED
+// This feature is no longer used in the brute force demonstration game
 
 // File Retrieval
 let sensorPosition = { x: 50, y: 50 };
@@ -1761,36 +2943,8 @@ function checkSensorAlignment() {
     }
 }
 
-function completeFileRetrieval() {
-    playSound('success');
-    // Add particles on file retrieval success
-    if (typeof createParticles === 'function') {
-        const sensorDisplay = document.getElementById('sensorDisplay');
-        if (sensorDisplay) {
-            const rect = sensorDisplay.getBoundingClientRect();
-            createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, '#00ff41', 15);
-        }
-    }
-    gameState.filesRetrieved = true;
-    gameState.score += 500;
-    
-    // Generate encrypted files if needed
-    if (gameState.selectedDifficulty === 'medium' || gameState.selectedDifficulty === 'hard') {
-        generateEncryptedFiles();
-        setTimeout(() => {
-            showScreen('decryptionScreen');
-            initializeDecryption();
-        }, 1000);
-    } else {
-        setTimeout(() => {
-            // Add confetti on campaign completion
-            if (typeof createConfetti === 'function') {
-                createConfetti();
-            }
-            showSuccessScreen();
-        }, 1000);
-    }
-}
+// File retrieval is now automatic when password is cracked
+// This function is kept for compatibility but files are retrieved in showSecurityAnalysis
 
 // Decryption
 function generateEncryptedFiles() {
@@ -1807,13 +2961,39 @@ function generateEncryptedFiles() {
         });
     }
     
-    // Generate decryption key (simple pattern)
-    const patterns = ['ABCD1234', '1234ABCD', 'A1B2C3D4', '1A2B3C4D'];
-    gameState.decryptionKey = patterns[Math.floor(Math.random() * patterns.length)];
+    // Generate numeric decryption key with pattern (4-6 digits)
+    // Patterns that look hard but are solveable with logical reasoning
+    const patterns = [
+        // Sequential patterns
+        '1234', '4321', '5678', '8765',
+        // Alternating patterns
+        '1357', '2468', '1593', '2846',
+        // Repeating patterns
+        '1212', '3434', '5656', '7878',
+        // Mathematical patterns
+        '2486', // powers of 2: 2, 4, 8, 16 (last digit 6)
+        '3692', // multiples of 3: 3, 6, 9, 12 (last digit 2)
+        // Reverse patterns
+        '9876', '5432',
+        // Longer patterns (6 digits)
+        '123456', '654321', '135792', '246813'
+    ];
+    
+    // Select a pattern, favoring shorter ones (4 digits) but sometimes longer (6 digits)
+    const patternIndex = Math.floor(Math.random() * patterns.length);
+    gameState.decryptionKey = patterns[patternIndex];
+    
+    // Save decryption key to the most recent passcode entry for Creator mode
+    if (allGeneratedPasscodes.length > 0) {
+        const latestEntry = allGeneratedPasscodes[allGeneratedPasscodes.length - 1];
+        latestEntry.decryptionKey = gameState.decryptionKey;
+        savePasscodesToStorage();
+    }
 }
 
 function initializeDecryption() {
     const filesContainer = document.getElementById('encryptedFiles');
+    if (filesContainer) {
     filesContainer.innerHTML = '';
     
     gameState.encryptedFiles.forEach((file, index) => {
@@ -1823,31 +3003,75 @@ function initializeDecryption() {
         fileDiv.textContent = `🔒 ${file.encrypted}`;
         filesContainer.appendChild(fileDiv);
     });
+    }
     
-    // Show pattern hint
+    // Show pattern hint - improved logical reasoning hints
     const patternElement = document.getElementById('keyPattern');
     if (patternElement) {
-        const hint = gameState.decryptionKey.split('').map((char, i) => {
-            if (i % 2 === 0) return char;
-            return '?';
+        const keyLength = gameState.decryptionKey.length;
+        let hint = '';
+        
+        // Show every other character for 4-digit keys
+        // Show every third character for 6-digit keys
+        if (keyLength === 4) {
+            hint = gameState.decryptionKey.split('').map((char, i) => {
+                return i % 2 === 0 ? char : '?';
         }).join('');
-        if (patternElement) patternElement.textContent = `Pattern: ${hint}`;
+        } else if (keyLength === 6) {
+            hint = gameState.decryptionKey.split('').map((char, i) => {
+                return i % 3 === 0 ? char : '?';
+            }).join('');
+        } else {
+            // Default: show first and last
+            hint = gameState.decryptionKey[0] + '?'.repeat(keyLength - 2) + gameState.decryptionKey[keyLength - 1];
+        }
+        
+        patternElement.textContent = `Pattern Hint: ${hint}`;
+    }
+    
+    // Show additional hints based on pattern type
+    const hintTextEl = document.getElementById('decryptionHintText');
+    if (hintTextEl) {
+        const key = gameState.decryptionKey;
+        let hintText = '💡 Analyze the pattern: ';
+        
+        // Detect pattern type and provide hint
+        if (key === key.split('').reverse().join('')) {
+            hintText += 'The pattern is palindromic (reads same forwards and backwards)';
+        } else if (key.split('').every((char, i) => i === 0 || parseInt(char) === parseInt(key[i-1]) + 1)) {
+            hintText += 'The pattern follows a sequential increasing order';
+        } else if (key.split('').every((char, i) => i === 0 || parseInt(char) === parseInt(key[i-1]) - 1)) {
+            hintText += 'The pattern follows a sequential decreasing order';
+        } else if (key.match(/(\d)\1/)) {
+            hintText += 'The pattern contains repeating digits';
+        } else if (key.length === 4 && key[0] === key[2] && key[1] === key[3]) {
+            hintText += 'The pattern repeats every two digits';
+        } else {
+            hintText += 'Look for mathematical or logical sequences';
+        }
+        
+        hintTextEl.textContent = hintText;
     }
     
     const decryptionKeyInput = document.getElementById('decryptionKey');
-    if (decryptionKeyInput) decryptionKeyInput.value = '';
+    if (decryptionKeyInput) {
+        decryptionKeyInput.value = '';
+        decryptionKeyInput.maxLength = gameState.decryptionKey.length;
+        decryptionKeyInput.placeholder = `Enter ${gameState.decryptionKey.length}-digit key`;
+    }
 }
 
 function attemptDecryption() {
     const inputEl = document.getElementById('decryptionKey');
     if (!inputEl) return;
     
-    // Validate and sanitize input
+    // Validate and sanitize input - numeric only now
     const rawKey = inputEl.value;
-    const sanitized = sanitizeInput(rawKey, 16);
-    if (!validateInput(sanitized, 'decryption')) {
+    const sanitized = rawKey.trim().replace(/[^0-9]/g, ''); // Only numbers
+    
+    if (!sanitized || sanitized.length === 0) {
         inputEl.classList.add('error-shake');
-        inputEl.placeholder = 'Invalid key (alphanumeric only, 1-16 chars)';
+        inputEl.placeholder = 'Invalid key (numeric only)';
         setTimeout(() => {
             inputEl.classList.remove('error-shake');
             inputEl.placeholder = 'Enter decryption key';
@@ -1855,12 +3079,15 @@ function attemptDecryption() {
         return;
     }
     
-    const input = sanitized.trim().toUpperCase();
+    const input = sanitized;
     
     if (input === gameState.decryptionKey) {
         playSound('success');
         gameState.filesDecrypted = true;
         gameState.score += 1000;
+        
+        // Decryption key is already saved when files were generated
+        // This ensures it's visible in Creator mode even before decryption
         
         // Decrypt files
         gameState.encryptedFiles.forEach((file, index) => {
@@ -1871,21 +3098,21 @@ function attemptDecryption() {
             }
         });
         
+        // Show decryption analysis instead of success screen
         setTimeout(() => {
-            showSuccessScreen();
+            showDecryptionAnalysis();
         }, 2000);
     } else {
         playSound('error');
         
         // Show in-game error message instead of alert
-        const input = document.getElementById('decryptionKey');
-        if (input) {
-            input.value = '';
-            input.classList.add('error-shake');
-            input.placeholder = 'Incorrect key! Try again...';
+        if (inputEl) {
+            inputEl.value = '';
+            inputEl.classList.add('error-shake');
+            inputEl.placeholder = 'Incorrect key! Analyze the pattern and try again.';
             setTimeout(() => {
-                input.classList.remove('error-shake');
-                input.placeholder = 'Enter decryption key';
+                inputEl.classList.remove('error-shake');
+                inputEl.placeholder = 'Enter decryption key';
             }, 2000);
         }
         
@@ -2316,11 +3543,6 @@ function loadSettingsDisplay() {
     const soundEnabled = document.getElementById('soundEnabled');
     const soundVolume = document.getElementById('soundVolume');
     const soundVolumeValue = document.getElementById('soundVolumeValue');
-    const musicEnabled = document.getElementById('musicEnabled');
-    const musicVolume = document.getElementById('musicVolume');
-    const musicVolumeValue = document.getElementById('musicVolumeValue');
-    const defaultDifficulty = document.getElementById('defaultDifficulty');
-    const autoSave = document.getElementById('autoSave');
     const showHints = document.getElementById('showHints');
     const theme = document.getElementById('theme');
     const animationsEnabled = document.getElementById('animationsEnabled');
@@ -2334,13 +3556,9 @@ function loadSettingsDisplay() {
         soundVolume.value = settings.soundVolume || 100;
         if (soundVolumeValue) soundVolumeValue.textContent = settings.soundVolume || 100;
     }
-    if (musicEnabled) musicEnabled.checked = settings.musicEnabled !== false;
-    if (musicVolume) {
-        musicVolume.value = settings.musicVolume || 50;
-        if (musicVolumeValue) musicVolumeValue.textContent = settings.musicVolume || 50;
-    }
-    if (defaultDifficulty) defaultDifficulty.value = settings.defaultDifficulty || 'easy';
-    if (autoSave) autoSave.checked = settings.autoSave !== false;
+    // Music settings removed - no background music in the game
+    // Default difficulty removed - passwords are randomly generated with different vulnerability levels
+    // Auto-save removed - feature disabled
     if (showHints) showHints.checked = settings.showHints !== false;
     if (theme) theme.value = settings.theme || 'cyberpunk';
     if (animationsEnabled) animationsEnabled.checked = settings.animationsEnabled !== false;
@@ -2475,51 +3693,50 @@ function setupSettingsControls() {
     const soundVolumeValue = document.getElementById('soundVolumeValue');
     if (soundVolume && soundVolumeValue) {
         soundVolume.addEventListener('input', (e) => {
-            const value = e.target.value;
-            soundVolumeValue.textContent = value;
-            window.settingsManager.updateSetting('soundVolume', parseInt(value));
+            const value = parseInt(e.target.value);
+            soundVolumeValue.textContent = `${value}%`;
+            window.settingsManager.updateSetting('soundVolume', value);
         });
     }
     
-    // Music volume
-    const musicVolume = document.getElementById('musicVolume');
-    const musicVolumeValue = document.getElementById('musicVolumeValue');
-    if (musicVolume && musicVolumeValue) {
-        musicVolume.addEventListener('input', (e) => {
-            const value = e.target.value;
-            musicVolumeValue.textContent = value;
-            window.settingsManager.updateSetting('musicVolume', parseInt(value));
-        });
-    }
+    // Music volume removed - no background music in the game
     
-    // All checkboxes - ensure proper boolean handling
-    ['soundEnabled', 'musicEnabled', 'autoSave', 'showHints', 'animationsEnabled', 'screenReader', 'colorblindMode'].forEach(id => {
+    // All checkboxes - removed musicEnabled and autoSave
+    ['soundEnabled', 'showHints', 'animationsEnabled', 'screenReader', 'colorblindMode'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.addEventListener('change', (e) => {
                 window.settingsManager.updateSetting(id, e.target.checked);
+                window.settingsManager.applySettings(); // Reapply to ensure changes take effect
             });
         }
     });
+    
+    // Animations - special handling to ensure toggle works
+    const animationsEl = document.getElementById('animationsEnabled');
+    if (animationsEl) {
+        animationsEl.addEventListener('change', (e) => {
+            window.settingsManager.updateSetting('animationsEnabled', e.target.checked);
+            window.settingsManager.applySettings();
+        });
+    }
     
     // High contrast - special handling to ensure toggle works
     const highContrastEl = document.getElementById('highContrast');
     if (highContrastEl) {
         highContrastEl.addEventListener('change', (e) => {
             window.settingsManager.updateSetting('highContrast', e.target.checked);
-            // Force reapply to ensure theme is restored when high contrast is off
-            if (!e.target.checked) {
-                window.settingsManager.applySettings();
-            }
+            window.settingsManager.applySettings();
         });
     }
     
-    // Selects
-    ['defaultDifficulty', 'fontSize'].forEach(id => {
+    // Selects - removed defaultDifficulty
+    ['fontSize'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.addEventListener('change', (e) => {
                 window.settingsManager.updateSetting(id, e.target.value);
+                window.settingsManager.applySettings();
             });
         }
     });
@@ -2529,7 +3746,18 @@ function setupSettingsControls() {
     if (themeEl) {
         themeEl.addEventListener('change', (e) => {
             window.settingsManager.updateSetting('theme', e.target.value);
-            // Force theme application
+            window.settingsManager.applySettings();
+        });
+    }
+    
+    // UI Scale - make it actually work
+    const uiScale = document.getElementById('uiScale');
+    const uiScaleValue = document.getElementById('uiScaleValue');
+    if (uiScale && uiScaleValue) {
+        uiScale.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            uiScaleValue.textContent = `${value}%`;
+            window.settingsManager.updateSetting('uiScale', value);
             window.settingsManager.applySettings();
         });
     }
@@ -3043,12 +4271,24 @@ let isPaused = false;
 let pauseTimeRemaining = 0;
 
 function togglePause() {
-    if (!gameState.gameStarted || gameState.currentScreen !== 'bruteForceGame') return;
+    // Only pause if we're in brute force game screen
+    if (gameState.currentScreen !== 'bruteForceGame') return;
     
+    // If brute force attack is running or paused, use brute force pause/resume
+    if (gameState.isBruteForceRunning || gameState.isPaused) {
+        if (gameState.isPaused) {
+            // Currently paused - resume it
+            resumeBruteForceAttack();
+        } else {
+            // Currently running - pause it
+            pauseBruteForceAttack();
+        }
+        return;
+    }
+    
+    // For timer-based pause (legacy code, not used in brute force mode)
     isPaused = !isPaused;
     if (isPaused) {
-        pauseTimeRemaining = gameState.timeRemaining;
-        stopTimer();
         const pauseMenu = document.getElementById('pauseMenu');
         if (pauseMenu) {
             pauseMenu.style.display = 'flex';
@@ -3056,8 +4296,6 @@ function togglePause() {
         }
         playSound('select');
     } else {
-        gameState.timeRemaining = pauseTimeRemaining;
-        startTimer();
         const pauseMenu = document.getElementById('pauseMenu');
         if (pauseMenu) {
             pauseMenu.style.display = 'none';
@@ -3089,32 +4327,18 @@ function restartGame() {
         'Are you sure you want to restart? Progress will be lost.',
         () => {
             isPaused = false;
+            
+            // Stop brute force attack if running
+            if (gameState.isBruteForceRunning) {
+                stopBruteForceAttack();
+            }
+            
+            // Stop timer if running
+            stopTimer();
+            
             gameState.reset();
             gameState.clearSaveState();
-            if (gameState.isCampaignMode) {
-                // Restart current campaign level
-                const level = gameState.currentCampaignLevel;
-                if (level === 'level1') {
-                    gameState.selectedDifficulty = 'easy';
-                    gameState.passwordLength = 4;
-                    gameState.timeRemaining = 60;
-                    gameState.maxAttempts = 10;
-                } else if (level === 'level2') {
-                    gameState.selectedDifficulty = 'medium';
-                    gameState.passwordLength = 6;
-                    gameState.timeRemaining = 45;
-                    gameState.maxAttempts = 5;
-                } else if (level === 'level3') {
-                    gameState.selectedDifficulty = 'hard';
-                    gameState.passwordLength = 8;
-                    gameState.timeRemaining = 30;
-                    gameState.maxAttempts = 3;
-                }
                 initializeGame();
-                showScreen('bruteForceGame');
-            } else {
-                showScreen('deviceSelection');
-            }
             playSound('select');
         },
         () => {
@@ -3129,10 +4353,14 @@ function quitToMenu() {
         'Are you sure you want to quit? Progress will be lost.',
         () => {
             isPaused = false;
+            
+            // Stop brute force attack if running
+            if (gameState.isBruteForceRunning) {
+                stopBruteForceAttack();
+            }
+            
             gameState.gameStarted = false;
             gameState.reset();
-            gameState.isCampaignMode = false;
-            gameState.currentCampaignLevel = null;
             gameState.clearSaveState();
             stopTimer();
             if (window.bgMusicNode) {
@@ -3622,15 +4850,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Device Selection - Auto-select based on device
     document.querySelectorAll('.device-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('.device-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            gameState.selectedDevice = card.dataset.device;
-            playSound('select');
-            setTimeout(() => {
-                showScreen('difficultySelection');
-            }, 300);
-        });
+        // Device selection removed from main flow - devices auto-detected
+        // card.addEventListener('click', () => {
+        //     document.querySelectorAll('.device-card').forEach(c => c.classList.remove('selected'));
+        //     card.classList.add('selected');
+        //     gameState.selectedDevice = card.dataset.device;
+        //     playSound('select');
+        //     setTimeout(() => {
+        //         showScreen('difficultySelection');
+        //     }, 300);
+        // });
     });
     
     // Auto-select device on page load
@@ -3724,14 +4953,174 @@ document.addEventListener('DOMContentLoaded', () => {
     const playAgainBtn = document.getElementById('playAgainBtn');
     const mainMenuBtn = document.getElementById('mainMenuBtn');
     const saveScoreBtn = document.getElementById('saveScoreBtn');
+    const backFromDecryption = document.getElementById('backFromDecryption');
+    const backFromGame = document.getElementById('backFromGame');
+    const backToMenuFromSummary = document.getElementById('backToMenuFromSummary');
+    const viewLeaderboardBtn = document.getElementById('viewLeaderboardBtn');
+    const continueToDecryptionBtn = document.getElementById('continueToDecryptionBtn');
+    const continueToSummaryBtn = document.getElementById('continueToSummaryBtn');
     
     if (startBtn) {
         startBtn.addEventListener('click', () => {
-            // Ensure campaign mode is off for regular start game
-            gameState.isCampaignMode = false;
-            gameState.currentCampaignLevel = null;
-            showScreen('deviceSelection');
+            initializeGame();
             playSound('select');
+        });
+    }
+    
+    // Gift collection screen continue button
+    const continueFromGift = document.getElementById('continueFromGift');
+    if (continueFromGift) {
+        continueFromGift.addEventListener('click', () => {
+            // After gift screen, go to security analysis
+            showSecurityAnalysis();
+            playSound('select');
+        });
+    }
+    
+    if (backFromGame) {
+        backFromGame.addEventListener('click', () => {
+            if (gameState.isBruteForceRunning) {
+                stopBruteForceAttack();
+            }
+            showScreen('mainMenu');
+            playSound('select');
+        });
+    }
+    
+    if (backFromDecryption) {
+        backFromDecryption.addEventListener('click', () => {
+            showScreen('securityAnalysisScreen');
+            playSound('select');
+        });
+    }
+    
+    if (playAgainBtn) {
+        playAgainBtn.addEventListener('click', () => {
+            initializeGame();
+            playSound('select');
+        });
+    }
+    
+    if (backToMenuFromSummary) {
+        backToMenuFromSummary.addEventListener('click', () => {
+            showScreen('mainMenu');
+            playSound('select');
+        });
+    }
+    
+    // Save score button on final summary
+    const saveScoreBtnSummary = document.getElementById('saveScoreBtnSummary');
+    if (saveScoreBtnSummary) {
+        saveScoreBtnSummary.addEventListener('click', () => {
+            const nameInput = document.getElementById('playerNameInputSummary');
+            const playerName = nameInput ? (nameInput.value.trim() || 'Anonymous') : 'Anonymous';
+            
+            if (window.leaderboardAPI) {
+                window.leaderboardAPI.saveScore(
+                    playerName,
+                    gameState.score,
+                    gameState.vulnerabilityLevel || 'weak',
+                    'laptop',
+                    gameState.actualCrackTime || 0
+                ).then(() => {
+                    showToast('Score saved successfully!', 'success');
+                    if (typeof loadLeaderboard === 'function') loadLeaderboard();
+                    showScreen('leaderboardScreen');
+                    playSound('success');
+                }).catch(error => {
+                    console.error('Failed to save score:', error);
+                    showToast('Score saved locally!', 'info');
+                    if (typeof loadLeaderboard === 'function') loadLeaderboard();
+                    showScreen('leaderboardScreen');
+                });
+            }
+        });
+    }
+    
+    if (viewLeaderboardBtn) {
+        viewLeaderboardBtn.addEventListener('click', () => {
+            if (typeof loadLeaderboard === 'function') {
+                loadLeaderboard();
+            }
+            showScreen('leaderboardScreen');
+            playSound('select');
+        });
+    }
+    
+    // Brute force attack buttons
+    const startBruteForceBtn = document.getElementById('startBruteForceBtn');
+    if (startBruteForceBtn) {
+        startBruteForceBtn.addEventListener('click', () => {
+            startBruteForceAttack();
+            playSound('select');
+        });
+    }
+    
+    // Pause button - toggle between pause and resume based on state
+    const pauseBruteForceBtn = document.getElementById('pauseBruteForceBtn');
+    if (pauseBruteForceBtn) {
+        pauseBruteForceBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Check current state and toggle
+            if (gameState.isPaused) {
+                // Currently paused - resume
+                resumeBruteForceAttack();
+            } else if (gameState.isBruteForceRunning) {
+                // Currently running - pause
+                pauseBruteForceAttack();
+            }
+            playSound('select');
+        });
+    }
+    
+    // Continue buttons
+    if (continueToDecryptionBtn) {
+        continueToDecryptionBtn.addEventListener('click', () => {
+            showScreen('decryptionScreen');
+            initializeDecryption();
+            playSound('select');
+        });
+    }
+    
+    if (continueToSummaryBtn) {
+        continueToSummaryBtn.addEventListener('click', () => {
+            showFinalSummary();
+            playSound('select');
+        });
+    }
+    
+    // Manual password input
+    const manualPasswordInput = document.getElementById('manualPasswordInput');
+    const tryPasswordBtn = document.getElementById('tryPasswordBtn');
+    
+    if (manualPasswordInput) {
+        manualPasswordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                tryManualPassword();
+            }
+        });
+        
+        // Only allow numeric input and limit to password length
+        manualPasswordInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            // Update maxLength based on current password length
+            if (gameState && gameState.passwordLength) {
+                e.target.value = e.target.value.slice(0, gameState.passwordLength);
+                e.target.maxLength = gameState.passwordLength;
+            }
+        });
+        
+        // Update maxLength when game initializes
+        if (gameState && gameState.passwordLength) {
+            manualPasswordInput.maxLength = gameState.passwordLength;
+        }
+    }
+    
+    if (tryPasswordBtn) {
+        tryPasswordBtn.addEventListener('click', () => {
+            tryManualPassword();
         });
     }
     
@@ -4120,12 +5509,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    if (backToDevice) {
-        backToDevice.addEventListener('click', () => {
-            showScreen('deviceSelection');
-            playSound('select');
-        });
-    }
+    // backToDevice button removed - device selection no longer in flow
+    // if (backToDevice) {
+    //     backToDevice.addEventListener('click', () => {
+    //         showScreen('deviceSelection');
+    //         playSound('select');
+    //     });
+    // }
     
     if (backFromLeaderboard) {
         backFromLeaderboard.addEventListener('click', () => {
@@ -4148,12 +5538,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    if (playAgainBtn) {
-        playAgainBtn.addEventListener('click', () => {
-            showScreen('deviceSelection');
-            playSound('select');
-        });
-    }
+    // playAgainBtn is handled earlier in the code (line 4552)
     
     if (mainMenuBtn) {
         mainMenuBtn.addEventListener('click', () => {
@@ -4250,7 +5635,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (retryAfterTimeUp) {
         retryAfterTimeUp.addEventListener('click', () => {
-            showScreen('deviceSelection');
+            initializeGame();
             playSound('select');
         });
     }
@@ -4392,22 +5777,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Campaign Screen
-    const campaignBtn = document.getElementById('campaignBtn');
-    const backFromCampaign = document.getElementById('backFromCampaign');
-    if (campaignBtn) {
-        campaignBtn.addEventListener('click', () => {
-            updateCampaignDisplay();
-            showScreen('campaignScreen');
-            playSound('select');
-        });
-    }
-    if (backFromCampaign) {
-        backFromCampaign.addEventListener('click', () => {
-            showScreen('mainMenu');
-            playSound('select');
-        });
-    }
+    // Campaign Screen - removed from main menu but kept for creator mode access
+    // const campaignBtn = document.getElementById('campaignBtn');
+    // const backFromCampaign = document.getElementById('backFromCampaign');
+    // Campaign button removed from main menu - campaign mode accessible via creator mode only
     
     // Multiplayer Screen
     const multiplayerBtn = document.getElementById('multiplayerBtn');
@@ -4458,31 +5831,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Check for saved game state on load
-    if (window.settingsManager && window.settingsManager.getSetting('autoSave')) {
-        const hasSave = gameState.loadGameState();
-        if (hasSave) {
-            showCustomConfirm(
-                'CONTINUE GAME',
-                'Continue saved game?',
-                () => {
-                    // Restore game state
-                    showScreen(gameState.currentScreen);
-                },
-                () => {
-                    // Clear save and start fresh
-                    gameState.clearSaveState();
-                }
-            );
-        }
-    }
+    // Continue saved game feature removed - not needed for brute force demonstration
+    // Auto-save is disabled to prevent glitches
     
     // Pause menu buttons
     const pauseBtn = document.getElementById('pauseBtn');
     const resumeBtn = document.getElementById('resumeBtn');
     const restartBtn = document.getElementById('restartBtn');
     const quitToMenuBtn = document.getElementById('quitToMenuBtn');
-    const backFromGame = document.getElementById('backFromGame');
     
     if (pauseBtn) {
         pauseBtn.addEventListener('click', () => {
@@ -4505,30 +5861,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (quitToMenuBtn) {
         quitToMenuBtn.addEventListener('click', () => {
             quitToMenu();
-        });
-    }
-    
-    if (backFromGame) {
-        backFromGame.addEventListener('click', () => {
-            showCustomConfirm(
-                'RETURN TO MENU',
-                'Return to menu? Progress will be saved.',
-                () => {
-                    gameState.saveGameState();
-                    if (gameState.isCampaignMode) {
-                        gameState.isCampaignMode = false;
-                        gameState.currentCampaignLevel = null;
-                        updateCampaignDisplay();
-                        showScreen('campaignScreen');
-                    } else {
-                        showScreen('mainMenu');
-                    }
-                    playSound('select');
-                },
-                () => {
-                    // Cancel - do nothing
-                }
-            );
         });
     }
     

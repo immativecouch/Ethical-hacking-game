@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="description" content="Interactive cybersecurity training game with brute force attacks, file retrieval, and encryption challenges">
-    <meta name="keywords" content="cybersecurity, hacking game, ethical hacking, password cracking, encryption, security training, educational game, PWA, progressive web app">
-    <meta name="author" content="Ethical Hacker Game">
+    <meta name="description" content="Security vulnerability demonstration showing real brute force attacks, password entropy analysis, and encryption vulnerabilities">
+    <meta name="keywords" content="cybersecurity, security vulnerability, brute force attack, password entropy, encryption analysis, security demonstration, ethical hacking, educational">
+    <meta name="author" content="Ethical Hacker">
     <meta name="theme-color" content="#00ff41">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,20 +15,20 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://immativecouch.github.io/Ethical-hacking-game/">
-    <meta property="og:title" content="Ethical Hacker - Cybersecurity Training Game">
-    <meta property="og:description" content="Interactive cybersecurity training game with brute force attacks, file retrieval, and encryption challenges">
+    <meta property="og:title" content="Ethical Hacker - Security Vulnerability Demonstration">
+    <meta property="og:description" content="Security vulnerability demonstration showing real brute force attacks, password entropy analysis, and encryption vulnerabilities">
     <meta property="og:image" content="https://immativecouch.github.io/Ethical-hacking-game/icons/icon-512x512.png">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://immativecouch.github.io/Ethical-hacking-game/">
-    <meta property="twitter:title" content="Ethical Hacker - Cybersecurity Training Game">
-    <meta property="twitter:description" content="Interactive cybersecurity training game">
+    <meta property="twitter:title" content="Ethical Hacker - Security Vulnerability Demonstration">
+    <meta property="twitter:description" content="Security vulnerability demonstration showing real brute force attacks and encryption analysis">
     <meta property="twitter:image" content="https://immativecouch.github.io/Ethical-hacking-game/icons/icon-512x512.png">
     
     <link rel="canonical" href="https://immativecouch.github.io/Ethical-hacking-game/">
     
-    <title>Ethical Hacker - Cybersecurity Training Game</title>
+    <title>Ethical Hacker - Security Vulnerability Demonstration</title>
     
     <!-- PWA Manifest - Only load on http/https, not file:// -->
     <script>
@@ -81,10 +81,10 @@
         <div class="welcome-container">
             <div class="welcome-content">
                 <h1 class="welcome-title">ETHICAL HACKER</h1>
-                <p class="welcome-subtitle">Cybersecurity Training Simulation</p>
+                <p class="welcome-subtitle">Security Vulnerability Demonstration</p>
                 <div class="welcome-message">
-                    <p>Learn ethical hacking through interactive challenges</p>
-                    <p>Practice password cracking, file retrieval, and decryption</p>
+                    <p>Demonstrate real security vulnerabilities through brute force attacks</p>
+                    <p>Analyze password entropy, crack time, and encryption weaknesses</p>
                 </div>
                 <div class="welcome-controls">
                     <p class="controls-hint">Press <kbd>ENTER</kbd> / <kbd>A</kbd> (Gamepad) / Click to continue</p>
@@ -101,29 +101,22 @@
     <div id="mainMenu" class="screen" role="main" aria-label="Main menu">
         <div class="menu-container">
             <h1 class="game-title">ETHICAL HACKER</h1>
-            <p class="game-subtitle">Cybersecurity Training Simulation</p>
+            <p class="game-subtitle">Security Vulnerability Demonstration</p>
             <div class="mobile-notice">
                 <p>📱 <strong>Note:</strong> Optimized for all devices. Touch controls available for mobile users.</p>
             </div>
             <div class="menu-buttons menu-compact">
                 <div class="menu-primary">
                     <button class="btn btn-primary" id="startBtn" aria-label="Start new game">START GAME</button>
-                    <button class="btn btn-secondary" id="campaignBtn" aria-label="Start campaign mode">CAMPAIGN</button>
-                </div>
-                <div class="menu-secondary">
-                    <button class="btn btn-secondary btn-small" id="statisticsBtn" aria-label="View statistics">📊 STATS</button>
-                    <button class="btn btn-secondary btn-small" id="achievementsBtn" aria-label="View achievements">🏆 ACHIEVEMENTS</button>
-                    <button class="btn btn-secondary btn-small" id="dailyChallengesBtn" aria-label="View daily challenges">📅 CHALLENGES</button>
                     <button class="btn btn-secondary btn-small" id="leaderboardBtn" aria-label="View leaderboard">📈 LEADERBOARD</button>
                 </div>
-                <div class="menu-tertiary">
+                <div class="menu-secondary">
                     <button class="btn btn-secondary btn-small" id="tutorialBtn">📖 TUTORIAL</button>
                     <button class="btn btn-secondary btn-small" id="settingsBtn">⚙️ SETTINGS</button>
                     <button class="btn btn-secondary btn-small" id="aboutBtn">ℹ️ ABOUT</button>
-                    <button class="btn btn-secondary btn-small" id="multiplayerBtn">🎮 MULTIPLAYER</button>
+                    <button class="btn btn-secondary btn-creator btn-small" id="creatorModeBtn">🔧 CREATOR</button>
                 </div>
                 <div class="menu-extra">
-                    <button class="btn btn-secondary btn-creator btn-small" id="creatorModeBtn">🔧 CREATOR</button>
                     <button class="btn btn-install btn-small" id="installPWA" style="display: none; background: rgba(0, 212, 255, 0.2); border-color: var(--secondary-color); color: var(--secondary-color);">
                         📱 INSTALL
                     </button>
@@ -296,19 +289,14 @@
                                 <h4 style="color: var(--danger-color); margin-top: 2rem;">⚠️ Reset Options</h4>
                                 
                                 <div class="reset-buttons">
-                                    <button class="btn btn-secondary" id="resetStatsBtn">Reset Statistics</button>
-                                    <button class="btn btn-secondary" id="resetAchievementsBtn">Reset Achievements</button>
-                                    <button class="btn btn-secondary" id="resetCampaignBtn">Reset Campaign</button>
                                     <button class="btn btn-secondary" id="resetLeaderboardBtn">Reset Leaderboard</button>
-                                    <button class="btn btn-secondary" id="resetChallengesBtn">Reset Challenges</button>
                                 </div>
                                 
                                 <div class="wipe-all-section" style="margin-top: 2rem; padding-top: 2rem; border-top: 3px solid var(--danger-color);">
-                                    <h4 style="color: var(--danger-color);">🗑️ WIPE ALL DATA</h4>
                                     <button class="btn btn-danger" id="wipeAllDataBtn" style="width: 100%; max-width: 400px;">
                                         🗑️ WIPE ALL GAME DATA
                                     </button>
-                                    <p class="help-text" style="color: var(--danger-color);">
+                                    <p class="help-text" style="color: var(--danger-color); margin-top: 0.5rem;">
                                         This will permanently delete ALL game data. This action cannot be undone!
                                     </p>
                                 </div>
@@ -373,21 +361,15 @@
         </div>
     </div>
 
-    <!-- Brute Force Game Screen -->
+    <!-- Brute Force Attack Screen -->
     <div id="bruteForceGame" class="screen">
         <div class="game-container">
             <div class="game-header">
                 <div class="game-info">
                     <button class="btn btn-small btn-back-game" id="backFromGame" title="Back to Menu (ESC)">← BACK</button>
-                    <span class="device-name" id="currentDevice">💻 LAPTOP</span>
-                    <span class="difficulty-badge" id="currentDifficulty">EASY</span>
+                    <span class="password-info" id="passwordLengthDisplay">4-digit numeric password</span>
                 </div>
                 <div class="timer-score">
-                    <button class="btn btn-small btn-pause" id="pauseBtn" title="Pause (P)">⏸ PAUSE</button>
-                    <div class="timer">
-                        <span>⏱️</span>
-                        <span id="timer">60</span>
-                    </div>
                     <div class="score">
                         <span>Score: </span>
                         <span id="score">0</span>
@@ -398,44 +380,102 @@
                 </div>
             </div>
             
-            <div class="game-area">
-                <div class="password-display">
-                    <h3>CRACK THE PASSWORD</h3>
-                    <div class="password-hint" id="passwordHint"></div>
-                    <div class="hint-tip">
-                        💡 <strong>Tip:</strong> Look for characters with a blue glow and ✨ symbol - those are password characters!
+            <div class="brute-force-container">
+                <div class="brute-force-header">
+                    <h2>🔓 BRUTE FORCE ATTACK</h2>
+                    <p>Real-time password cracking demonstration</p>
+                </div>
+                
+                <div class="security-info-panel">
+                    <div class="security-metric">
+                        <label>Entropy:</label>
+                        <span id="bruteForceEntropy">-- bits</span>
                     </div>
-                    <div class="password-slots" id="passwordSlots"></div>
-                    <div class="attempts">
-                        <span>Attempts: </span>
-                        <span id="attempts">0</span>
-                        <span> / </span>
-                        <span id="maxAttempts">10</span>
+                    <div class="security-metric">
+                        <label>Vulnerability:</label>
+                        <span id="bruteForceVulnerability" class="vulnerability-badge">--</span>
+                    </div>
+                    <div class="security-metric">
+                        <label>Estimated Crack Time:</label>
+                        <span id="bruteForceCrackTime">--</span>
                     </div>
                 </div>
                 
-                <div class="crossword-grid" id="crosswordGrid"></div>
-                
-                <div class="controls-hint">
-                    <div class="controls">
-                        <p class="desktop-controls">Use <kbd>Arrow Keys</kbd> to move</p>
-                        <p class="desktop-controls">Press <kbd>ENTER</kbd> to select character</p>
-                        <p class="desktop-controls">Gamepad: D-Pad or Left Stick + A/X button</p>
-                        <p class="mobile-controls">📱 <strong>Mobile:</strong> Tap cells to select characters</p>
-                        <p class="mobile-controls">Swipe on grid to move selection</p>
+                <div class="vulnerability-meter-container">
+                    <label>Security Level:</label>
+                    <div class="vulnerability-meter">
+                        <div class="vulnerability-meter-bar">
+                            <div class="vulnerability-meter-fill" id="vulnerabilityMeterBar"></div>
+                        </div>
+                        <span class="vulnerability-meter-value" id="vulnerabilityMeterValue">0%</span>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Floating Hint Notification -->
-        <div id="hintNotification" class="hint-notification">
-            <div class="hint-content">
-                <div class="hint-icon">💡</div>
-                <p class="hint-message">Need help finding the password?</p>
-                <div class="hint-buttons">
-                    <button class="btn btn-primary btn-small" id="requestHintBtn">GET HINT</button>
-                    <button class="btn btn-secondary btn-small" id="dismissHintBtn">NO THANKS</button>
+                
+                <div class="brute-force-attack-panel">
+                    <div class="attack-controls">
+                        <button class="btn btn-primary" id="startBruteForceBtn">START ATTACK</button>
+                        <button class="btn btn-secondary" id="pauseBruteForceBtn" style="display: none;">PAUSE</button>
+                    </div>
+                    
+                    <div class="attack-stats">
+                        <div class="stat-item">
+                            <label>Current Guess:</label>
+                            <span id="currentGuessDisplay">0000</span>
+                        </div>
+                        <div class="stat-item">
+                            <label>Attempts:</label>
+                            <span id="bruteForceAttemptsCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <label>Elapsed Time:</label>
+                            <span id="bruteForceElapsedTime">0.00s</span>
+                        </div>
+                        <div class="stat-item">
+                            <label>Attack Speed:</label>
+                            <span id="bruteForceAttackSpeed">100 attempts/sec</span>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <label>Progress:</label>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="bruteForceProgressBar" style="width: 0%"></div>
+                        </div>
+                        <span class="progress-text" id="bruteForceProgressText">0.0000%</span>
+                    </div>
+                    
+                    <div class="manual-guess-section">
+                        <h3>🎯 Manual Password Guess</h3>
+                        <p class="guess-instruction">Try to guess the password before the brute force attack finds it!</p>
+                        
+                        <!-- Show hints for medium/strong passwords -->
+                        <div id="passwordHints" class="password-hints" style="display: none;">
+                            <p class="hint-label">💡 Hints (Medium/Strong passwords only):</p>
+                            <div id="hintContent" class="hint-content"></div>
+                        </div>
+                        
+                        <div class="manual-input-container">
+                            <input 
+                                type="text" 
+                                id="manualPasswordInput" 
+                                class="manual-password-input" 
+                                placeholder="Enter password guess" 
+                                maxlength="6" 
+                                pattern="[0-9]*" 
+                                inputmode="numeric"
+                                autocomplete="off"
+                            >
+                            <button class="btn btn-primary" id="tryPasswordBtn">TRY PASSWORD</button>
+                        </div>
+                        <div id="manualGuessFeedback" class="guess-feedback"></div>
+                    </div>
+                    
+                    <div class="attempts-display">
+                        <h3>Recent Attempts:</h3>
+                        <div class="attempts-list" id="bruteForceAttemptsList">
+                            <p class="no-attempts">Click "START ATTACK" to begin brute force attempt</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -505,16 +545,217 @@
                 </div>
                 <div class="decryption-section">
                     <h3>🔑 Decryption Key Pattern</h3>
-                    <div class="key-pattern" id="keyPattern"></div>
+                    <div class="key-pattern" id="keyPattern">Pattern Hint: --</div>
+                    <p id="decryptionHintText" class="hint-text">💡 Analyze the pattern to find the key</p>
                     <div class="decryption-input">
-                        <input type="text" id="decryptionKey" placeholder="Enter decryption key" maxlength="16" autofocus>
+                        <input type="text" id="decryptionKey" placeholder="Enter decryption key (numeric)" maxlength="16" pattern="[0-9]*" inputmode="numeric" autofocus>
                         <button class="btn btn-primary" id="decryptBtn">DECRYPT</button>
                     </div>
                     <div class="decryption-error" id="decryptionError"></div>
                     <div class="hint-box">
-                        <p>💡 Hint: Analyze the encrypted data pattern to find the key</p>
-                        <p class="hint-example">Example patterns: ABCD1234, 1234ABCD, A1B2C3D4</p>
+                        <p>💡 Hint: Look for patterns like sequences, repeating digits, or mathematical progressions</p>
+                        <p class="hint-example">Example patterns: 1234, 4321, 1357, 1212, 2486</p>
                     </div>
+                </div>
+            </div>
+            <button class="btn btn-back" id="backFromDecryption">BACK</button>
+        </div>
+    </div>
+
+    <!-- Security Analysis Screen (Post-Password) -->
+    <div id="securityAnalysisScreen" class="screen">
+        <div class="container scrollable">
+            <h2>SECURITY ANALYSIS</h2>
+            <div class="security-analysis-content">
+                <div class="analysis-section">
+                    <h3>🔓 Password Analysis</h3>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <label>Password:</label>
+                            <span id="analysisPassword" class="password-value">----</span>
+                        </div>
+                        <div class="analysis-item">
+                            <label>Entropy:</label>
+                            <span id="analysisEntropy">-- bits</span>
+                        </div>
+                        <div class="analysis-item">
+                            <label>Vulnerability Level:</label>
+                            <span id="analysisVulnerability" class="vulnerability-badge">--</span>
+                        </div>
+                        <div class="analysis-item">
+                            <label>Crack Time:</label>
+                            <div id="analysisCrackTime">--</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-section">
+                    <h3>📊 Vulnerability Meter</h3>
+                    <div class="vulnerability-meter-container">
+                        <div class="vulnerability-meter">
+                            <div class="vulnerability-meter-bar">
+                                <div class="vulnerability-meter-fill" id="analysisVulnerabilityMeterBar"></div>
+                            </div>
+                            <span class="vulnerability-meter-value" id="analysisVulnerabilityMeterValue">0%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-section">
+                    <h3>⚠️ Weaknesses Detected</h3>
+                    <div id="analysisWeaknesses" class="weaknesses-list">
+                        <p>Analyzing...</p>
+                    </div>
+                </div>
+                
+                <div class="analysis-section">
+                    <h3>📁 File Retrieval Status</h3>
+                    <div id="analysisFilesRetrieved" class="files-status">
+                        ✅ Files Retrieved Successfully
+                    </div>
+                    <div class="files-list">
+                        <p>Files retrieved:</p>
+                        <ul id="analysisFilesList">
+                            <li>confidential.txt</li>
+                            <li>passwords.db</li>
+                            <li>financial.xlsx</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="analysis-section">
+                    <h3>💡 Security Recommendations</h3>
+                    <ul class="recommendations-list">
+                        <li>Use longer passwords (6+ digits)</li>
+                        <li>Avoid sequential patterns (1234, 4321)</li>
+                        <li>Avoid repeated digits (1111, 2222)</li>
+                        <li>Use alphanumeric passwords with special characters</li>
+                        <li>Enable two-factor authentication</li>
+                    </ul>
+                </div>
+                
+                <div class="analysis-actions">
+                    <button class="btn btn-primary" id="continueToDecryptionBtn" style="display: none;">CONTINUE TO DECRYPTION</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decryption Analysis Screen -->
+    <div id="decryptionAnalysisScreen" class="screen">
+        <div class="container scrollable">
+            <h2>DECRYPTION SECURITY ANALYSIS</h2>
+            <div class="security-analysis-content">
+                <div class="analysis-section">
+                    <h3>🔑 Decryption Key Analysis</h3>
+                    <div class="analysis-grid">
+                        <div class="analysis-item">
+                            <label>Decryption Key:</label>
+                            <span id="decryptionAnalysisKey" class="password-value">----</span>
+                        </div>
+                        <div class="analysis-item">
+                            <label>Entropy:</label>
+                            <span id="decryptionAnalysisEntropy">-- bits</span>
+                        </div>
+                        <div class="analysis-item">
+                            <label>Key Length:</label>
+                            <span id="decryptionAnalysisLength">-- digits</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="analysis-section">
+                    <h3>⚠️ Encryption Weaknesses</h3>
+                    <div id="decryptionAnalysisWeaknesses" class="weaknesses-list">
+                        <p>Analyzing...</p>
+                    </div>
+                </div>
+                
+                <div class="analysis-section">
+                    <h3>🔒 Encryption Vulnerability Explanation</h3>
+                    <div id="decryptionAnalysisExplanation" class="explanation-text">
+                        <p>Pattern-based encryption is vulnerable to analysis and cracking.</p>
+                    </div>
+                </div>
+                
+                <div class="analysis-actions">
+                    <button class="btn btn-primary" id="continueToSummaryBtn" style="display: none;">VIEW FINAL SUMMARY</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Summary Screen -->
+    <div id="finalSummaryScreen" class="screen">
+        <div class="container scrollable">
+            <h2>SECURITY VULNERABILITY SUMMARY</h2>
+            <div class="summary-content">
+                <div class="summary-section">
+                    <h3>📊 Complete Security Analysis</h3>
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <label>Total Vulnerabilities Found:</label>
+                            <span id="summaryVulnerabilities" class="stat-value">0</span>
+                        </div>
+                        <div class="summary-stat">
+                            <label>Final Score:</label>
+                            <span id="summaryScore" class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <h3>🔓 Password Security Analysis</h3>
+                    <div id="summaryPasswordAnalysis" class="summary-analysis">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <h3>🔑 Decryption Security Analysis</h3>
+                    <div id="summaryDecryptionAnalysis" class="summary-analysis">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="summary-section">
+                    <h3>💡 Security Recommendations</h3>
+                    <div id="summaryRecommendations" class="recommendations-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="summary-actions">
+                    <div class="name-input-section" style="margin-bottom: 1rem; width: 100%; max-width: 400px;">
+                        <label for="playerNameInputSummary" style="display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Enter your name for leaderboard:</label>
+                        <input type="text" id="playerNameInputSummary" placeholder="Your Name" maxlength="20" style="width: 100%; padding: 0.75rem; background: var(--bg-card); border: 2px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 1rem;">
+                    </div>
+                    <button class="btn btn-primary" id="saveScoreBtnSummary">SAVE SCORE & VIEW LEADERBOARD</button>
+                    <button class="btn btn-secondary" id="playAgainBtn">PLAY AGAIN</button>
+                    <button class="btn btn-secondary" id="viewLeaderboardBtn">VIEW LEADERBOARD</button>
+                    <button class="btn btn-secondary" id="backToMenuFromSummary">BACK TO MENU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gift Collection Screen -->
+    <div id="giftCollectionScreen" class="screen">
+        <div class="container">
+            <div class="gift-content">
+                <h2>🎁 COLLECT YOUR GIFT!</h2>
+                <div class="gift-message">
+                    <p class="brute-force-says">"Brute Force Says:"</p>
+                    <p class="gift-text">Congratulations! You figured out the passcode before I could!</p>
+                    <p class="gift-subtext">You've earned a special reward for your skills!</p>
+                </div>
+                <div class="gift-score">
+                    <p>Score: <span id="giftScore">0</span></p>
+                    <p>Time: <span id="giftTime">0s</span></p>
+                    <p>Level: <span id="giftLevel">WEAK</span></p>
+                </div>
+                <div class="gift-actions">
+                    <button class="btn btn-primary" id="continueFromGift">CONTINUE</button>
                 </div>
             </div>
         </div>
@@ -659,35 +900,37 @@
                 <div class="tutorial-section">
                     <h3>🎮 How to Play</h3>
                     <ol>
-                        <li>Select a target device (Laptop, Mobile, or PC)</li>
-                        <li>Choose difficulty level (Easy, Medium, or Hard)</li>
-                        <li>Use arrow keys or WASD to move the selection box</li>
-                        <li>Find the correct password by selecting characters</li>
-                        <li>Complete the file retrieval sensor operation</li>
-                        <li>Decrypt files if playing Medium or Hard difficulty</li>
+                        <li>Click "START GAME" to begin the security vulnerability demonstration</li>
+                        <li>Watch the brute force attack attempt passwords sequentially (0000, 0001, 0002...)</li>
+                        <li>Observe real-time security metrics: entropy, vulnerability level, and estimated crack time</li>
+                        <li>After the password is cracked, review the security analysis showing weaknesses</li>
+                        <li>Continue to decryption to analyze encryption vulnerabilities</li>
+                        <li>Review the final summary with complete security recommendations</li>
                     </ol>
                 </div>
                 <div class="tutorial-section">
-                    <h3>🔒 Cybersecurity Education</h3>
-                    <p>This game demonstrates common attack vectors:</p>
+                    <h3>🔒 Security Vulnerability Demonstration</h3>
+                    <p>This demonstration shows real security vulnerabilities:</p>
                     <ul>
-                        <li><strong>Brute Force Attacks:</strong> Attackers try multiple password combinations</li>
-                        <li><strong>Social Engineering:</strong> Gathering information to guess passwords</li>
-                        <li><strong>Data Interception:</strong> Retrieving files from compromised devices</li>
-                        <li><strong>Encryption Bypass:</strong> Attempting to decrypt protected data</li>
+                        <li><strong>Brute Force Attacks:</strong> Real-time demonstration of password cracking by trying all possible combinations</li>
+                        <li><strong>Password Entropy:</strong> Measurement of password strength in bits (weak &lt; 20, medium 20-40, strong &gt; 40)</li>
+                        <li><strong>Crack Time Estimation:</strong> Calculation of how long it would take to crack a password</li>
+                        <li><strong>Vulnerability Analysis:</strong> Identification of password weaknesses (length, patterns, sequences)</li>
+                        <li><strong>Encryption Vulnerabilities:</strong> Analysis of pattern-based encryption weaknesses</li>
+                        <li><strong>File Retrieval:</strong> Demonstration of data access after password compromise</li>
                     </ul>
                 </div>
                 <div class="tutorial-section">
-                    <h3>🛡️ How to Protect Yourself</h3>
+                    <h3>🛡️ Security Best Practices</h3>
                     <ul>
-                        <li>Use strong, unique passwords (12+ characters, mixed case, numbers, symbols)</li>
-                        <li>Enable two-factor authentication (2FA)</li>
-                        <li>Keep software and systems updated</li>
-                        <li>Use encryption for sensitive files</li>
-                        <li>Be cautious of phishing attempts</li>
-                        <li>Monitor your accounts for suspicious activity</li>
-                        <li>Use a password manager</li>
-                        <li>Never share passwords or personal information</li>
+                        <li>Use longer passwords (6+ digits for numeric, 12+ characters for alphanumeric)</li>
+                        <li>Avoid sequential patterns (1234, 4321) and repeated digits (1111, 2222)</li>
+                        <li>Use alphanumeric passwords with special characters for higher entropy</li>
+                        <li>Enable two-factor authentication (2FA) for additional security</li>
+                        <li>Use cryptographically secure random keys for encryption</li>
+                        <li>Use password managers for secure storage and generation</li>
+                        <li>Keep software and systems updated with security patches</li>
+                        <li>Monitor accounts for suspicious activity</li>
                     </ul>
                 </div>
             </div>
@@ -700,18 +943,35 @@
         <div class="container">
             <h2>ABOUT</h2>
             <div class="about-content">
-                <p><strong>Ethical Hacker</strong> is an educational cybersecurity training game designed to demonstrate common attack vectors and security vulnerabilities in a safe, controlled environment.</p>
+                <p><strong>Ethical Hacker - Security Vulnerability Demonstration</strong> is an educational cybersecurity tool designed to demonstrate real security vulnerabilities through interactive brute force attacks, password entropy analysis, and encryption vulnerability assessment.</p>
                 <h3>Project Purpose</h3>
-                <p>This project aims to educate users about:</p>
+                <p>This demonstration aims to educate users about:</p>
                 <ul>
-                    <li>How brute force attacks work</li>
-                    <li>Common security vulnerabilities</li>
+                    <li>How brute force attacks work in real-time</li>
+                    <li>Password entropy and its role in security</li>
+                    <li>Crack time estimation and vulnerability analysis</li>
+                    <li>Encryption weaknesses and pattern-based vulnerabilities</li>
                     <li>Best practices for protecting digital assets</li>
-                    <li>The importance of strong passwords and encryption</li>
+                    <li>The importance of strong passwords and secure encryption</li>
                 </ul>
                 <h3>Educational Value</h3>
-                <p>By experiencing these attack scenarios in a game format, users can better understand the importance of cybersecurity and learn how to protect themselves from real-world threats.</p>
-                <p class="disclaimer"><strong>⚠️ Disclaimer:</strong> This game is for educational purposes only. Unauthorized access to computer systems is illegal and unethical.</p>
+                <p>By observing real brute force attacks and security analysis in action, users can better understand:</p>
+                <ul>
+                    <li>Why weak passwords are vulnerable to brute force attacks</li>
+                    <li>How password entropy affects security</li>
+                    <li>Why pattern-based encryption is insecure</li>
+                    <li>How to create stronger passwords and encryption keys</li>
+                    <li>The importance of cybersecurity best practices</li>
+                </ul>
+                <h3>Security Implementation</h3>
+                <p>This demonstration uses real algorithms to:</p>
+                <ul>
+                    <li>Calculate password entropy using Shannon entropy</li>
+                    <li>Estimate crack time based on password space and attack speed</li>
+                    <li>Analyze password weaknesses (length, patterns, sequences)</li>
+                    <li>Demonstrate encryption vulnerabilities</li>
+                </ul>
+                <p class="disclaimer"><strong>⚠️ Disclaimer:</strong> This demonstration is for educational purposes only. Unauthorized access to computer systems is illegal and unethical. All demonstrations are simulated in a controlled environment.</p>
             </div>
             <button class="btn btn-back" id="backFromAbout">BACK</button>
         </div>
@@ -782,33 +1042,15 @@
                         <label for="soundVolume">Sound Volume: <span id="soundVolumeValue">100</span>%</label>
                         <input type="range" id="soundVolume" min="0" max="100" value="100">
                     </div>
-                    <div class="setting-item">
-                        <label for="musicEnabled">Background Music</label>
-                        <input type="checkbox" id="musicEnabled" checked>
-                    </div>
-                    <div class="setting-item">
-                        <label for="musicVolume">Music Volume: <span id="musicVolumeValue">50</span>%</label>
-                        <input type="range" id="musicVolume" min="0" max="100" value="50">
-                    </div>
                 </div>
                 <div class="settings-section">
                     <h3>Gameplay</h3>
                     <div class="setting-item">
-                        <label for="defaultDifficulty">Default Difficulty</label>
-                        <select id="defaultDifficulty">
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <label for="autoSave">Auto-Save Game</label>
-                        <input type="checkbox" id="autoSave" checked>
-                    </div>
-                    <div class="setting-item">
                         <label for="showHints">Show Hints</label>
                         <input type="checkbox" id="showHints" checked>
+                        <p class="help-text" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">Hints are shown for all password levels to help you crack them faster</p>
                     </div>
+                    <p class="help-text" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 1rem;">Each game randomly generates passwords with different vulnerability levels (weak, medium, strong)</p>
                 </div>
                 <div class="settings-section">
                     <h3>Appearance</h3>
@@ -841,12 +1083,9 @@
                 <div class="settings-section">
                     <h3>Controls</h3>
                     <div class="setting-item">
-                        <label for="uiScale">UI Scale</label>
+                        <label for="uiScale">UI Scale: <span id="uiScaleValue">100%</span></label>
                         <input type="range" id="uiScale" min="80" max="120" value="100">
-                        <span id="uiScaleValue">100%</span>
-                    </div>
-                    <div class="setting-item">
-                        <button class="btn btn-secondary" id="showKeyboardShortcuts">View Keyboard Shortcuts</button>
+                        <p class="help-text" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 0.5rem;">Adjust the size of UI elements (80% - 120%)</p>
                     </div>
                 </div>
                 <div class="settings-section">
